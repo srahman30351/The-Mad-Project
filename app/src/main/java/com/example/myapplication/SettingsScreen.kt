@@ -17,6 +17,11 @@ fun SettingsScreen(navController: NavController){
         verticalArrangement = Arrangement.Center
     ) {
         Text(text = "Settings")
+        Button(onClick = {
+            navController.navigate("home_screen")
+        }) {
+            Text(text = "Back to home")
+        }
 
 
     }
