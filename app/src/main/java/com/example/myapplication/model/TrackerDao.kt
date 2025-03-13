@@ -24,6 +24,6 @@ interface TrackerDao {
     suspend fun deleteUser(user: User)
 
     @Update
-    suspend fun updateUser(user: User))
+    suspend fun updateUser(user: User)
 
 }
