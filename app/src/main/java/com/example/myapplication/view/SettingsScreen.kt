@@ -1,4 +1,4 @@
-package com.example.myapplication
+package com.example.myapplication.view
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,17 +10,19 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
 
 @Composable
-fun UserScreen(navController: NavController){
+fun SettingsScreen(navController: NavController){
     Column(
         Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text(text = "Users")
+        Text(text = "Settings")
         Button(onClick = {
-            navController.navigate("settings_screen")
+            navController.navigate("home_screen")
         }) {
-            Text(text = "Go to Settings")
+            Text(text = "Back to home")
         }
+
+
     }
 }
