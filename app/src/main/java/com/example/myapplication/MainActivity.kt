@@ -31,6 +31,7 @@ import com.example.myapplication.view.navigation.Screen
 import com.example.myapplication.viewModel.UserScreen
 
 class MainActivity : ComponentActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
