@@ -29,14 +29,13 @@ import com.example.myapplication.view.LoginScreen
 import com.example.myapplication.view.SettingsScreen
 import com.example.myapplication.view.navigation.NavItem
 import com.example.myapplication.view.navigation.Screen
-import com.example.myapplication.viewModel.UserScreen
+import com.example.myapplication.view.UserScreen
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-
             var selectedIndex by remember { mutableIntStateOf(0) }
             val navController = rememberNavController()
             val navItems = listOf(

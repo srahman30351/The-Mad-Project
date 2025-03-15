@@ -1,14 +1,14 @@
 package com.example.myapplication.model.data
 
-import androidx.room.Entity
-import androidx.room.PrimaryKey
-
-@Entity(tableName = "user_table")
 data class User(
-    @PrimaryKey
-    var userID: String,
-    var userFirstname: String,
-    var userLastname: String,
-    var userPhone: String,
-    var userUsername: String
+    val UserFirstname: String,
+    val UserID: Int,
+    val UserImageURL: String,
+    val UserLastname: String,
+    val UserLatitude: Double,
+    val UserLongitude: Double,
+    val UserPassword: String,
+    val UserPhone: String,
+    val UserTimestamp: Int,
+    val UserUsername: String
 )
