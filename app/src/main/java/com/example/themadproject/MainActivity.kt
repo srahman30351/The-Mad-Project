@@ -8,9 +8,11 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -52,7 +54,6 @@ class MainActivity : AppCompatActivity() {
                         NavigationBar {
                             navItems.forEachIndexed { index, navItem ->
                                 NavigationBarItem(
-
                                     selected = selectedIndex == index,
                                     onClick = {
                                         selectedIndex = index
