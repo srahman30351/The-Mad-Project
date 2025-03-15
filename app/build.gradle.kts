@@ -54,14 +54,19 @@ dependencies {
     // Room dependencies with KSP
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
+    implementation(libs.androidx.runtime.livedata)
     ksp(libs.androidx.room.ksp) // Use KSP
 
     //Retrofit dependencies
     implementation("com.squareup.retrofit2:retrofit:2.11.0")
-    implementation("com.squareup.retrofit2:converter-gson:2.11.0")
+    implementation("com.squareup.retrofit2:converter-moshi:2.11.0")
 
     // Logging Inteceptor dependencies
     implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
+
+    // Moshi dependencies
+    implementation("com.squareup.moshi:moshi:1.15.0")
+    implementation("com.squareup.moshi:moshi-kotlin:1.15.0")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
