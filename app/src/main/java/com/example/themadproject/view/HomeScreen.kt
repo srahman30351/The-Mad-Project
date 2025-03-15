@@ -23,12 +23,12 @@ import androidx.navigation.NavController
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(navController: NavController, viewModel: StaySafeViewModel = viewModel()){
+fun HomeScreen(navController: NavController, /*viewModel: StaySafeViewModel = viewModel()*/){
 
-    val locations = viewModel.locations.collectAsState().value
-    if (locations.isNotEmpty()) {
-        println(locations[0].toString())
-    }
+//    val locations = viewModel.locations.collectAsState().value
+//    if (locations.isNotEmpty()) {
+//        println(locations[0].toString())
+//    }
 
     Scaffold(
         floatingActionButton = {
