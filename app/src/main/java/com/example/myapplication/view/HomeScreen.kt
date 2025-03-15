@@ -25,9 +25,9 @@ import androidx.navigation.NavController
 @Composable
 fun HomeScreen(navController: NavController, viewModel: StaySafeViewModel = viewModel()){
 
-    val data = viewModel.staySafeData.collectAsState().value
-    if (data.isNotEmpty()) {
-        println(data)
+    val locations = viewModel.locations.collectAsState().value
+    if (locations.isNotEmpty()) {
+        println(locations[0].toString())
     }
 
     Scaffold(
@@ -46,15 +46,6 @@ fun HomeScreen(navController: NavController, viewModel: StaySafeViewModel = view
                 modifier = Modifier
                     .matchParentSize()
             )
-//            Column(
-//                modifier = Modifier
-//                    .fillMaxSize()
-//                    .zIndex(1f),
-//                verticalArrangement = Arrangement.Bottom,
-//                horizontalAlignment = Alignment.CenterHorizontally
-//            ) {
-//
-//            }
         }
     }
 }
