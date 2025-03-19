@@ -47,7 +47,6 @@ class MainActivity : AppCompatActivity() {
                     NavItem("Friends", Icons.Default.Person, Screen.UserScreen.route),
                     NavItem("Settings", Icons.Default.Settings, Screen.SettingsScreen.route)
                 )
-
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
                     bottomBar = {
