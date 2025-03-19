@@ -16,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.myapplication.view.navigation.Screen
 
 @Composable
 fun LoginScreen(navController: NavController){
@@ -41,7 +42,7 @@ fun LoginScreen(navController: NavController){
         Spacer(modifier = Modifier.height(16.dp) )
 
         Button(onClick = {
-            navController.navigate("home_screen")
+            navController.navigate(Screen.MapScreen.route)
         }) {
             Text(text = "Login")
         }

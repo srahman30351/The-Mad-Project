@@ -9,6 +9,6 @@ data class User(
     val UserLongitude: Double,
     val UserPassword: String,
     val UserPhone: String,
-    val UserTimestamp: Int,
+    val UserTimestamp: Double,
     val UserUsername: String
 )
