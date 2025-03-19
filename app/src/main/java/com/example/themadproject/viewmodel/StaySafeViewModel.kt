@@ -34,6 +34,7 @@ class StaySafeViewModel : ViewModel() {
         viewModelScope.launch {
             getLocations()
             getUsers()
+            getActivities()
         }
     }
 

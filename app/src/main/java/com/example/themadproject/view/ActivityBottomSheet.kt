@@ -1,60 +1,61 @@
-package com.example.myapplication.view
-import androidx.compose.foundation.layout.Arrangement
+package com.example.themadproject.view
+
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Scaffold
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
-import com.example.myapplication.model.data.User
+import com.example.myapplication.model.data.Activity
 import com.example.myapplication.viewmodel.StaySafeViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun UserScreen(navController: NavController, viewModel: StaySafeViewModel = viewModel()){
-    val users = viewModel.users.collectAsState().value
-    Scaffold(
-        topBar = {
-            TopAppBar (
-                { Text("My Friends") }
-            )
-        }
-    ) {
-        innerPadding ->
-        LazyColumn(modifier = Modifier.padding(innerPadding)) {
-            items(users) { user ->
-                UserCard(user)
+fun ActivityBottomSheet(
+    onDismiss: () -> Unit,
+    viewModel: StaySafeViewModel = viewModel(),
+){
+
+    val activities = viewModel.activities.collectAsState().value
+    if (activities.isNotEmpty()) {
+        val sheetState = rememberModalBottomSheetState()
+        ModalBottomSheet(
+            modifier = Modifier.navigationBarsPadding(),
+            sheetState = sheetState,
+            scrimColor = Color.Transparent,
+            onDismissRequest = onDismiss
+        ) {
+            LazyColumn {
+                items(activities) { activity ->
+                    ActivityCard(activity)
+                }
             }
         }
     }
 }
 
 @Composable
-fun UserCard(user: User) {
+fun ActivityCard(activity: Activity) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp, horizontal = 8.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xff57B4BA)
+            containerColor = Color(0xffA3C9A8)
         ),
         onClick = { }
     ) {
@@ -64,21 +65,20 @@ fun UserCard(user: User) {
                 .padding(vertical = 8.dp, horizontal = 12.dp),
         ) {
             Text(
-                text = user.UserUsername,
+                text = activity.ActivityName,
                 fontWeight = FontWeight.Black,
                 overflow = TextOverflow.Ellipsis,
                 maxLines = 2,
             )
             Text(
-                text = "${user.UserFirstname} ${user.UserLastname}",
-                fontWeight = FontWeight.Bold,
+                text = "${activity.ActivityFromName} to",
                 overflow = TextOverflow.Ellipsis,
                 maxLines = 2,
             )
             Text(
-                text = user.UserPhone,
+                text = activity.ActivityToName ?: "",
                 overflow = TextOverflow.Ellipsis,
-                maxLines = 1
+                maxLines = 2
             )
         }
     }
