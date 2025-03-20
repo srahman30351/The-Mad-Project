@@ -41,9 +41,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun LoginScreen(
     navController: NavController,
-    snackbarHostState: SnackbarHostState,
-    showSnackbar: suspend (String, String) -> Unit,
-    viewModel: StaySafeViewModel = viewModel()
+    viewModel: StaySafeViewModel
 ) {
     val users = viewModel.users.collectAsState().value
     val coroutineScope = rememberCoroutineScope()
@@ -52,9 +50,7 @@ fun LoginScreen(
     var showPassword by remember { mutableStateOf(false) }
 
     Scaffold(
-        snackbarHost = {
-            SnackbarHost(snackbarHostState)
-        }
+        snackbarHost = { SnackbarHost(hostState = viewModel.snackbarHostState.value) }
     ) { paddingValues ->
         Column(
             Modifier
@@ -99,7 +95,7 @@ fun LoginScreen(
                         username = username,
                         password = password,
                         users = users,
-                        showSnackbar = showSnackbar,
+                        showSnackbar = { message, action -> viewModel.showSnackbar(message,action)},
                         onLogin = { account ->
                             viewModel.getUser(account)
                             navController.navigate(Screen.MapScreen.route)
@@ -113,11 +109,11 @@ fun LoginScreen(
     }
 }
 
-private suspend fun verifyLogin(
+private fun verifyLogin(
     username: String,
     password: String,
     users: List<User>,
-    showSnackbar: suspend (String, String) -> Unit,
+    showSnackbar: (String, String) -> Unit,
     onLogin: (User) -> Unit
 ) {
     if (username.isBlank() || password.isBlank()) {

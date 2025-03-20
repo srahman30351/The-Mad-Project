@@ -75,4 +75,5 @@ dependencies {
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("com.google.android.material:material:1.9.0")
     implementation ("com.google.android.libraries.places:places:3.2.0")
+    implementation("io.coil-kt:coil-compose:2.0.0")
 }

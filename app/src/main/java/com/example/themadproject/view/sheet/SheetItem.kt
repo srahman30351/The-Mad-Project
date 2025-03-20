@@ -1,6 +1,4 @@
-package com.example.myapplication.view.navigation
-
-import androidx.compose.runtime.MutableState
+package com.example.themadproject.view.sheet
 
 data class SheetItem(
     val label: String,

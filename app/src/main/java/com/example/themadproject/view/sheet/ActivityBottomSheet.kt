@@ -1,4 +1,4 @@
-package com.example.themadproject.view
+package com.example.themadproject.view.sheet
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -27,7 +27,7 @@ import com.example.myapplication.viewmodel.StaySafeViewModel
 @Composable
 fun ActivityBottomSheet(
     onDismiss: () -> Unit,
-    viewModel: StaySafeViewModel = viewModel(),
+    viewModel: StaySafeViewModel
 ){
 
     val activities = viewModel.activities.collectAsState().value

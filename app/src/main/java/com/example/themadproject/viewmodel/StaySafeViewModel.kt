@@ -1,5 +1,9 @@
 package com.example.myapplication.viewmodel
 
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.myapplication.model.api.StaySafeClient
@@ -62,5 +66,17 @@ class StaySafeViewModel : ViewModel() {
 
     private fun getUsers() = viewModelScope.launch {
         _users.value = StaySafeClient.api.getUsers()
+    }
+
+    private val _snackbarHostState = mutableStateOf(SnackbarHostState())
+    val snackbarHostState: State<SnackbarHostState> get() = _snackbarHostState
+
+    fun showSnackbar(message: String, action: String) = viewModelScope.launch {
+        _snackbarHostState.value.currentSnackbarData?.dismiss()
+        _snackbarHostState.value.showSnackbar(
+            message = message,
+            actionLabel = action,
+            duration = SnackbarDuration.Short
+        )
     }
 }

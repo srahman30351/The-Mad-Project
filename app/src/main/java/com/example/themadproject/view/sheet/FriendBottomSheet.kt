@@ -1,4 +1,4 @@
-package com.example.themadproject.view
+package com.example.themadproject.view.sheet
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,25 +15,20 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
 import com.example.myapplication.model.data.User
 import com.example.myapplication.viewmodel.StaySafeViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun UserBottomSheet(
+fun FriendBottomSheet(
     onDismiss: () -> Unit,
-    viewModel: StaySafeViewModel = viewModel(),
+    viewModel: StaySafeViewModel
 ){
 
     val users = viewModel.users.collectAsState().value
@@ -50,7 +45,7 @@ fun UserBottomSheet(
                 modifier = Modifier.height(500.dp)
             ) {
                 items(users) { user ->
-                    UserCard(user)
+                    FriendCard(user)
                 }
             }
         }
@@ -58,7 +53,7 @@ fun UserBottomSheet(
 }
 
 @Composable
-fun UserCard(user: User) {
+fun FriendCard(friend: User) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -74,19 +69,19 @@ fun UserCard(user: User) {
                 .padding(vertical = 8.dp, horizontal = 12.dp),
         ) {
             Text(
-                text = user.UserUsername,
+                text = friend.UserUsername,
                 fontWeight = FontWeight.Black,
                 overflow = TextOverflow.Ellipsis,
                 maxLines = 2,
             )
             Text(
-                text = "${user.UserFirstname} ${user.UserLastname}",
+                text = "${friend.UserFirstname} ${friend.UserLastname}",
                 fontWeight = FontWeight.Bold,
                 overflow = TextOverflow.Ellipsis,
                 maxLines = 2,
             )
             Text(
-                text = user.UserPhone,
+                text = friend.UserPhone,
                 overflow = TextOverflow.Ellipsis,
                 maxLines = 1
             )
