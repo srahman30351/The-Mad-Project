@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
+import com.example.myapplication.view.navigation.Screen
 
 @Composable
 fun SettingsScreen(navController: NavController){
@@ -18,7 +19,7 @@ fun SettingsScreen(navController: NavController){
     ) {
         Text(text = "Settings")
         Button(onClick = {
-            navController.navigate("home_screen")
+            navController.navigate(Screen.MapScreen.route)
         }) {
             Text(text = "Back to home")
         }

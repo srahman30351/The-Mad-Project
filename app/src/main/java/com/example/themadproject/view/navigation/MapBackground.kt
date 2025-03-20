@@ -14,6 +14,8 @@ import com.google.android.gms.maps.model.MarkerOptions
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.zIndex
+import androidx.core.content.ContextCompat
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
 
 @Composable
 fun MapBackground(modifier: Modifier = Modifier) {
@@ -34,7 +36,13 @@ fun MapBackground(modifier: Modifier = Modifier) {
                 googleMap.addMarker(MarkerOptions().position(sydney).title("Marker in Sydney"))
                 googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(sydney, 10f))
             }
+/*
+            val drawable = ContextCompat.getDrawable()
 
+            val markerOption = MarkerOptions()
+            markerOption.position(LatLng(-34.0, 151.0))
+            markerOption.icon(BitmapDescriptorFactory.fromBitmap(getBitmapFromDrawable(r.drawable.)))
+*/
             frameLayout
         },
         modifier = modifier.fillMaxSize()
