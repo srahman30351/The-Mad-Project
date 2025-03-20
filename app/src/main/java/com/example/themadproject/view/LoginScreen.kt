@@ -17,6 +17,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -45,8 +46,8 @@ fun LoginScreen(
 ) {
     val users = viewModel.users.collectAsState().value
     val coroutineScope = rememberCoroutineScope()
-    var username by remember { mutableStateOf("dantheman123") }
-    var password by remember { mutableStateOf("password1") }
+    var username = remember { mutableStateOf("dantheman123") }
+    var password = remember { mutableStateOf("password1") }
     var showPassword by remember { mutableStateOf(false) }
 
     Scaffold(
@@ -61,15 +62,15 @@ fun LoginScreen(
         ) {
             Text(text = "Login")
             OutlinedTextField(
-                value = username,
-                onValueChange = { username = it },
+                value = username.value,
+                onValueChange = { username.value = it },
                 label = { Text("Username") },
                 singleLine = true
             )
             Spacer(modifier = Modifier.height(16.dp))
             OutlinedTextField(
-                value = password,
-                onValueChange = { password = it },
+                value = password.value,
+                onValueChange = { password.value = it },
                 label = { Text("Password") },
                 trailingIcon = {
                     Icon(
@@ -97,7 +98,7 @@ fun LoginScreen(
                         users = users,
                         showSnackbar = { message, action -> viewModel.showSnackbar(message,action)},
                         onLogin = { account ->
-                            viewModel.getUser(account)
+                            viewModel.setUser(account)
                             navController.navigate(Screen.MapScreen.route)
                         },
                     )
@@ -110,25 +111,28 @@ fun LoginScreen(
 }
 
 private fun verifyLogin(
-    username: String,
-    password: String,
+    username: MutableState<String>,
+    password: MutableState<String>,
     users: List<User>,
     showSnackbar: (String, String) -> Unit,
     onLogin: (User) -> Unit
 ) {
-    if (username.isBlank() || password.isBlank()) {
+    if (username.value.isBlank() || password.value.isBlank()) {
         showSnackbar("Please fill in the fields", "Login error")
         return
     }
-    val account = users.find { it.UserUsername == username }
+    val account = users.find { it.UserUsername == username.value }
     if (account == null) {
-        showSnackbar("Account doesn't exist", "Login error")
+        showSnackbar("Account doesn't exist", "error")
+        username.value = ""
+        password.value = ""
         return
-    } else if (account.UserPassword != password) {
-        showSnackbar("Password is incorrect", "Login error")
+    } else if (account.UserPassword != password.value) {
+        showSnackbar("Password is incorrect", "error")
+        password.value = ""
         return
     } else {
-        showSnackbar("Logging into account", "Login success")
+        showSnackbar("Successfully logged in!", "action")
         onLogin(account)
         return
     }

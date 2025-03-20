@@ -1,32 +1,43 @@
 package com.example.themadproject.view.sheet
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import com.example.myapplication.model.data.User
+import com.example.myapplication.view.navigation.Screen
 import com.example.myapplication.viewmodel.StaySafeViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileBottomSheet(
     onDismiss: () -> Unit,
-    viewModel: StaySafeViewModel
+    viewModel: StaySafeViewModel,
+    navController: NavController
 ) {
     val profile = viewModel.user.collectAsState().value
     if (profile != null) {
@@ -37,18 +48,28 @@ fun ProfileBottomSheet(
             scrimColor = Color.Transparent,
             onDismissRequest = onDismiss
         ) {
-            Button(onClick = {
-
-            }) {
-                Text(text = "Sign Out")
-            }
-
-            Button(onClick = {
-
-            }) {
-                Text(text = "Edit Profile")
-            }
             ProfileCard(profile)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(24.dp, Alignment.CenterHorizontally)
+            ) {
+                Button(onClick = {
+
+                }) {
+                    Text(text = "Edit Profile")
+                }
+
+                OutlinedButton(
+                    border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
+                    onClick = {
+                        viewModel.setUser(null)
+                        viewModel.showSnackbar("Successfully signed out","action")
+                        navController.navigate(Screen.LoginScreen.route)
+                }) {
+                    Text(text = "Sign Out", color = Color.Red, fontWeight = FontWeight.Bold)
+                }
+
+            }
         }
     }
 }
@@ -64,17 +85,35 @@ fun ProfileCard(profile: User) {
         ),
         onClick = { }
     ) {
-        Column(
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 8.dp, horizontal = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Text(
-                text = profile.UserUsername,
-                fontWeight = FontWeight.Black,
-                overflow = TextOverflow.Ellipsis,
-                maxLines = 2,
-            )
+            Card(Modifier.size(150.dp)) {
+                AsyncImage(
+                    model = profile.UserImageURL,
+                    modifier = Modifier
+                        .aspectRatio(1f / 1f),
+                    contentDescription = null
+                )
+            }
+            Column {
+                Text(
+                    text = profile.UserUsername,
+                    fontWeight = FontWeight.Black,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = "${profile.UserFirstname} ${profile.UserLastname}",
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = profile.UserPhone,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
         }
     }
 }

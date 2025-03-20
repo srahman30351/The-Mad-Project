@@ -44,7 +44,7 @@ class StaySafeViewModel : ViewModel() {
         }
     }
 
-    fun getUser(user: User) = viewModelScope.launch {
+    fun setUser(user: User?) = viewModelScope.launch {
         _user.value = user
     }
 

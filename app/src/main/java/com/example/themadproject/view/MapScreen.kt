@@ -98,7 +98,7 @@ fun MapScreen(
     ) { innerPadding ->
         if (activitySheetState) ActivityBottomSheet({ activitySheetState = false }, viewModel)
         if (friendSheetState) FriendBottomSheet({ friendSheetState = false }, viewModel)
-        if (profileSheetState) ProfileBottomSheet({ profileSheetState = false }, viewModel)
+        if (profileSheetState) ProfileBottomSheet({ profileSheetState = false }, viewModel, navController)
         if (settingsSheetState) SettingsBottomSheet({ settingsSheetState = false })
         MapBackground(modifier = Modifier.fillMaxSize().padding(innerPadding))
     }
