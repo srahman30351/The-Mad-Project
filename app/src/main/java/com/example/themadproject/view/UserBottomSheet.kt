@@ -19,6 +19,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.myapplication.model.data.User
 import com.example.myapplication.viewmodel.StaySafeViewModel
@@ -50,17 +55,38 @@ fun UserBottomSheet(
 }
 
 @Composable
-fun UserScreen(navController: NavController){
-    Column(
-        Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+fun UserCard(user: User) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp, horizontal = 8.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xff57B4BA)
+        ),
+        onClick = { }
     ) {
-        Text(text = "Users")
-        Button(onClick = {
-            navController.navigate("settings_screen")
-        }) {
-            Text(text = "Go to Settings")
+        Column (
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp, horizontal = 12.dp),
+        ) {
+            Text(
+                text = user.UserUsername,
+                fontWeight = FontWeight.Black,
+                overflow = TextOverflow.Ellipsis,
+                maxLines = 2,
+            )
+            Text(
+                text = "${user.UserFirstname} ${user.UserLastname}",
+                fontWeight = FontWeight.Bold,
+                overflow = TextOverflow.Ellipsis,
+                maxLines = 2,
+            )
+            Text(
+                text = user.UserPhone,
+                overflow = TextOverflow.Ellipsis,
+                maxLines = 1
+            )
         }
     }
 }
