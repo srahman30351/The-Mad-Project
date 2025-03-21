@@ -72,4 +72,8 @@ dependencies {
     implementation("com.google.android.gms:play-services-maps:19.1.0")
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("com.google.android.material:material:1.9.0")
+    implementation("com.google.android.libraries.places:places:3.2.0")
+    implementation("androidx.compose.foundation:foundation:1.5.1")
+    implementation("androidx.compose.ui:ui:1.5.1")
+    implementation("com.google.accompanist:accompanist-permissions:0.32.0")
 }

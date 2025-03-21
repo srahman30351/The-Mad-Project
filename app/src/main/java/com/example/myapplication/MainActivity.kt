@@ -30,10 +30,14 @@ import com.example.myapplication.view.SettingsScreen
 import com.example.myapplication.view.navigation.NavItem
 import com.example.myapplication.view.navigation.Screen
 import com.example.myapplication.viewModel.UserScreen
+import com.google.android.libraries.places.api.Places
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if (!Places.isInitialized()) {
+            Places.initialize(applicationContext, "AIzaSyBpRd8pMrcC34T4riIish0azmEmyu8QreQ")
+        }
         enableEdgeToEdge()
         setContent {
 
