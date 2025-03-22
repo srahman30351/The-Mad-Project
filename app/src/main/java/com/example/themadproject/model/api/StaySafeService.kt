@@ -5,7 +5,11 @@ import com.example.myapplication.model.data.Location
 import com.example.myapplication.model.data.Position
 import com.example.myapplication.model.data.Status
 import com.example.myapplication.model.data.User
+import okhttp3.ResponseBody
+import retrofit2.Response
+import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.POST
 
 interface StaySafeService {
 
@@ -23,4 +27,7 @@ interface StaySafeService {
 
     @GET("users")
     suspend fun getUsers(): List<User>
+
+    @POST("users")
+    suspend fun postUser(@Body user: User): Response<ResponseBody>
 }

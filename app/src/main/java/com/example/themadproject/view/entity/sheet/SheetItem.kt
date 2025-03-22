@@ -1,4 +1,4 @@
-package com.example.themadproject.view.sheet
+package com.example.themadproject.view.entity.sheet
 
 data class SheetItem(
     val label: String,

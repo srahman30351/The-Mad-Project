@@ -4,10 +4,12 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
@@ -16,6 +18,7 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
@@ -45,9 +48,8 @@ fun LoginScreen(
     viewModel: StaySafeViewModel
 ) {
     val users = viewModel.users.collectAsState().value
-    val coroutineScope = rememberCoroutineScope()
-    var username = remember { mutableStateOf("dantheman123") }
-    var password = remember { mutableStateOf("password1") }
+    var username = remember { mutableStateOf("FreedomFighter222") }
+    var password = remember { mutableStateOf("123123123") }
     var showPassword by remember { mutableStateOf(false) }
 
     Scaffold(
@@ -89,22 +91,31 @@ fun LoginScreen(
                 singleLine = true
             )
             Spacer(modifier = Modifier.height(16.dp))
-
-            Button(onClick = {
-                coroutineScope.launch {
-                    verifyLogin(
-                        username = username,
-                        password = password,
-                        users = users,
-                        showSnackbar = { message, action -> viewModel.showSnackbar(message,action)},
-                        onLogin = { account ->
-                            viewModel.setUser(account)
-                            navController.navigate(Screen.MapScreen.route)
-                        },
-                    )
-                }
-            }) {
+            Button(
+                modifier = Modifier.width(200.dp),
+                onClick = {
+                        verifyLogin(
+                            username = username,
+                            password = password,
+                            users = users,
+                            showSnackbar = { message, action ->
+                                viewModel.showSnackbar(
+                                    message,
+                                    action
+                                )
+                            },
+                            onLogin = { account ->
+                                viewModel.setUser(account)
+                                navController.navigate(Screen.MainScreen.route)
+                            },
+                        )
+                }) {
                 Text(text = "Login")
+            }
+            TextButton(onClick = {
+                navController.navigate(Screen.SignupScreen.route)
+            }) {
+                Text(text = "Create Account")
             }
         }
     }

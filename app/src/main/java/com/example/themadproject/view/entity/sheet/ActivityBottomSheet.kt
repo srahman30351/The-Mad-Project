@@ -1,8 +1,7 @@
-package com.example.themadproject.view.sheet
+package com.example.themadproject.view.entity.sheet
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -20,32 +19,28 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.myapplication.model.data.User
+import com.example.myapplication.model.data.Activity
 import com.example.myapplication.viewmodel.StaySafeViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FriendBottomSheet(
+fun ActivityBottomSheet(
     onDismiss: () -> Unit,
     viewModel: StaySafeViewModel
 ){
 
-    val users = viewModel.users.collectAsState().value
-    if (users.isNotEmpty()) {
+    val activities = viewModel.activities.collectAsState().value
+    if (activities.isNotEmpty()) {
         val sheetState = rememberModalBottomSheetState()
-
         ModalBottomSheet(
             modifier = Modifier.navigationBarsPadding(),
             sheetState = sheetState,
             scrimColor = Color.Transparent,
             onDismissRequest = onDismiss
         ) {
-            LazyColumn(
-                modifier = Modifier.height(500.dp)
-            ) {
-                items(users) { user ->
-                    FriendCard(user)
+            LazyColumn {
+                items(activities) { activity ->
+                    ActivityCard(activity)
                 }
             }
         }
@@ -53,13 +48,13 @@ fun FriendBottomSheet(
 }
 
 @Composable
-fun FriendCard(friend: User) {
+fun ActivityCard(activity: Activity) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp, horizontal = 8.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xff57B4BA)
+            containerColor = Color(0xffA3C9A8)
         ),
         onClick = { }
     ) {
@@ -69,21 +64,20 @@ fun FriendCard(friend: User) {
                 .padding(vertical = 8.dp, horizontal = 12.dp),
         ) {
             Text(
-                text = friend.UserUsername,
+                text = activity.ActivityName,
                 fontWeight = FontWeight.Black,
                 overflow = TextOverflow.Ellipsis,
                 maxLines = 2,
             )
             Text(
-                text = "${friend.UserFirstname} ${friend.UserLastname}",
-                fontWeight = FontWeight.Bold,
+                text = "${activity.ActivityFromName} to",
                 overflow = TextOverflow.Ellipsis,
                 maxLines = 2,
             )
             Text(
-                text = friend.UserPhone,
+                text = activity.ActivityToName ?: "",
                 overflow = TextOverflow.Ellipsis,
-                maxLines = 1
+                maxLines = 2
             )
         }
     }

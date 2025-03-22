@@ -1,4 +1,4 @@
-package com.example.themadproject.view.sheet
+package com.example.themadproject.view.entity.sheet
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

@@ -1,14 +1,13 @@
 package com.example.myapplication.model.data
 
 data class User(
+    val UserUsername: String,
     val UserFirstname: String,
-    val UserID: Int,
-    val UserImageURL: String,
     val UserLastname: String,
-    val UserLatitude: Double,
-    val UserLongitude: Double,
     val UserPassword: String,
     val UserPhone: String,
-    val UserTimestamp: Double,
-    val UserUsername: String
+    val UserImageURL: String,
+    val UserLatitude: Double = 0.0,
+    val UserLongitude: Double = 0.0,
+    val UserTimestamp: Double = 0.0
 )

@@ -1,5 +1,6 @@
 package com.example.myapplication.viewmodel
 
+import android.net.Uri
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.State
@@ -12,9 +13,19 @@ import com.example.myapplication.model.data.Location
 import com.example.myapplication.model.data.Position
 import com.example.myapplication.model.data.Status
 import com.example.myapplication.model.data.User
+import com.example.themadproject.model.data.ErrorMessage
+import com.squareup.moshi.JsonAdapter
+import com.squareup.moshi.Moshi
+import com.squareup.moshi.Types
+import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import okhttp3.*
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
+import java.io.File
 
 class StaySafeViewModel : ViewModel() {
 
@@ -44,8 +55,47 @@ class StaySafeViewModel : ViewModel() {
         }
     }
 
+    /*
+        fun uploadImage(imageUri: Uri) {
+            val file = File(imageUri.path ?: "")
+
+            val mediaType = "image/*".toMediaTypeOrNull()
+            val requestBody = file.asRequestBody(mediaType)
+            val multipartBodyPart = MultipartBody.Part.createFormData(
+                "image",
+                file.name,
+                requestBody
+            )
+           val response = imgbbClient.api.uploadImage(image = multipartBodyPart)
+            println(response.body())
+
+        }
+
+     */
+     */
     fun setUser(user: User?) = viewModelScope.launch {
         _user.value = user
+    }
+
+    fun createUser(user: User, onCreate: () -> Unit)= viewModelScope.launch {
+        val response = StaySafeClient.api.postUser(user)
+        if (response.isSuccessful) {
+            onCreate()
+        } else {
+            response.errorBody()?.let { errorBody ->
+                var errorBody = errorBody.string()
+                    .replace("\"message\":\"", "\"message\":[\"")
+                    .replace("\"}", "\"]}")
+                val moshi = Moshi.Builder()
+                    .add(KotlinJsonAdapterFactory())
+                    .build()
+                val adapter = moshi.adapter(ErrorMessage::class.java)
+                val errorMessages = adapter.fromJson(errorBody)
+                errorMessages?.message?.forEach {
+                    showPatientSnackbar(it, response.code().toString())
+                }
+            }
+        }
     }
 
     private fun getLocations() = viewModelScope.launch {
@@ -73,6 +123,14 @@ class StaySafeViewModel : ViewModel() {
 
     fun showSnackbar(message: String, action: String) = viewModelScope.launch {
         _snackbarHostState.value.currentSnackbarData?.dismiss()
+        _snackbarHostState.value.showSnackbar(
+            message = message,
+            actionLabel = action,
+            duration = SnackbarDuration.Short
+        )
+    }
+
+    fun showPatientSnackbar(message: String, action: String) = viewModelScope.launch {
         _snackbarHostState.value.showSnackbar(
             message = message,
             actionLabel = action,

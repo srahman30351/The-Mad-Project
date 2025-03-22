@@ -2,9 +2,6 @@ package com.example.themadproject.view
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -20,17 +17,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.navigation.NavController
 import com.example.myapplication.view.navigation.MapBackground
-import com.example.myapplication.view.navigation.Screen
 import com.example.myapplication.viewmodel.StaySafeViewModel
-import com.example.themadproject.view.sheet.SheetItem
+import com.example.themadproject.view.entity.sheet.SheetItem
 import com.example.themadproject.R
-import com.example.themadproject.view.sheet.ActivityBottomSheet
-import com.example.themadproject.view.sheet.FriendBottomSheet
-import com.example.themadproject.view.sheet.ProfileBottomSheet
-import com.example.themadproject.view.sheet.SettingsBottomSheet
+import com.example.themadproject.view.entity.sheet.ActivityBottomSheet
+import com.example.themadproject.view.entity.sheet.FriendBottomSheet
+import com.example.themadproject.view.entity.sheet.ProfileBottomSheet
+import com.example.themadproject.view.entity.sheet.SettingsBottomSheet
 
 @Composable
-fun MapScreen(
+fun MainScreen(
     navController: NavController,
     viewModel: StaySafeViewModel
 ) {
@@ -49,7 +45,7 @@ fun MapScreen(
                 settingsSheetState = false
             }),
         SheetItem(
-            "Friends", R.drawable.friends, friendSheetState,
+            "Crew", R.drawable.friends, friendSheetState,
             onShow = {
                 friendSheetState = true
                 activitySheetState = false

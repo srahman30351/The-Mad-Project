@@ -11,7 +11,8 @@ import com.example.myapplication.view.LoginScreen
 import com.example.myapplication.view.navigation.Screen
 import com.example.myapplication.viewmodel.StaySafeViewModel
 import com.example.themadproject.ui.theme.TheMADProjectTheme
-import com.example.themadproject.view.MapScreen
+import com.example.themadproject.view.MainScreen
+import com.example.themadproject.view.SignupScreen
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -25,13 +26,17 @@ class MainActivity : AppCompatActivity() {
                     navController = navController,
                     startDestination = Screen.LoginScreen.route,
                     builder = {
-                        composable(Screen.MapScreen.route)
+                        composable(Screen.MainScreen.route)
                         {
-                            MapScreen(navController, viewModel)
+                            MainScreen(navController, viewModel)
                         }
                         composable(Screen.LoginScreen.route)
                         {
                             LoginScreen(navController, viewModel)
+                        }
+                        composable(Screen.SignupScreen.route)
+                        {
+                            SignupScreen(navController, viewModel)
                         }
                     })
             }
