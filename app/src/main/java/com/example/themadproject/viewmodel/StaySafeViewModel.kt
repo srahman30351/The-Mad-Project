@@ -92,7 +92,7 @@ class StaySafeViewModel : ViewModel() {
                 val adapter = moshi.adapter(ErrorMessage::class.java)
                 val errorMessages = adapter.fromJson(errorBody)
                 errorMessages?.message?.forEach {
-                    showPatientSnackbar(it, response.code().toString())
+                    showPatientSnackbar(it, "Error")
                 }
             }
         }

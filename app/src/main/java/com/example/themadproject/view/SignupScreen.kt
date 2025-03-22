@@ -150,6 +150,7 @@ fun SignupScreen(
                         user = user,
                         onCreate = {
                             viewModel.setUser(user)
+                            viewModel.showSnackbar("Account successfully created!", "Success")
                             navController.navigate(Screen.LoginScreen.route)
                         }
                     )

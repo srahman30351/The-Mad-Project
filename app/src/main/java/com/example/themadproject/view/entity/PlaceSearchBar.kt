@@ -39,8 +39,15 @@ fun PlaceSearchBar(onPlaceSelected: (LatLng) -> Unit) {
     var predictions by remember { mutableStateOf<List<AutocompletePrediction>>(emptyList()) }
     Log.d("SearchBar", "SearchBar composable is running")
 
+    val onSelect: (LatLng, String) -> Unit = { latLng, text ->
+        onPlaceSelected(latLng)
+        query = text
+        expanded = false
+
+    }
+
     DockedSearchBar(
-        inputField =  {
+        inputField = {
             InputField(
                 query = query,
                 onQueryChange = {
@@ -48,15 +55,27 @@ fun PlaceSearchBar(onPlaceSelected: (LatLng) -> Unit) {
                     if (it.isEmpty()) predictions = emptyList()
                     expanded = true
                 },
-                onSearch = { },
+                onSearch = { if(predictions.isNotEmpty()) fetchPlace(predictions.first(), context, onSelect) },
                 expanded = false,
                 onExpandedChange = { },
                 placeholder = { Text("Search for places") },
                 leadingIcon = {
-                    Icon(imageVector = Icons.Default.Search, contentDescription = "Search")
+                    Icon(
+                        imageVector = Icons.Default.Search,
+                        contentDescription = "Search",
+                        modifier = Modifier.clickable(
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() },
+                            onClick = {
+                                if (!expanded) expanded = true
+                                else if (predictions.isNotEmpty()) fetchPlace(predictions.first(), context, onSelect)
+                            }
+                        )
+                    )
                 },
                 trailingIcon = {
-                    if (expanded || query.isNotEmpty()) Icon(imageVector = Icons.Default.Close,
+                    if (expanded || query.isNotEmpty()) Icon(
+                        imageVector = Icons.Default.Close,
                         contentDescription = "Close",
                         modifier = Modifier.clickable(
                             indication = null,
@@ -76,11 +95,7 @@ fun PlaceSearchBar(onPlaceSelected: (LatLng) -> Unit) {
         content = {
             if (predictions.isNotEmpty()) {
                 predictions.forEachIndexed { index, prediction ->
-                    PredictionText(prediction, context, { latLng, text ->
-                        onPlaceSelected(latLng)
-                        query = text
-                        expanded = false
-                    })
+                    PredictionText(prediction, context, onSelect)
                     if (index != predictions.lastIndex) {
                         HorizontalDivider(Modifier.padding(horizontal = 16.dp))
                     }
@@ -111,7 +126,7 @@ fun PlaceSearchBar(onPlaceSelected: (LatLng) -> Unit) {
                     )
                     predictions = response.autocompletePredictions
                 }
-                .addOnFailureListener() { e ->
+                .addOnFailureListener { e ->
                     Log.e(
                         "SearchBar",
                         "Failed to fetch place details: ${e.localizedMessage}"
@@ -136,19 +151,28 @@ fun PredictionText(
             .padding(16.dp)
             .fillMaxWidth()
             .clickable {
-                val placeId = prediction.placeId
-                val placesClient = Places.createClient(context)
-                val placeRequest =
-                    FetchPlaceRequest.builder(placeId, listOf(Place.Field.LAT_LNG))
-                        .build()
-
-                placesClient.fetchPlace(placeRequest)
-                    .addOnSuccessListener { placeResponse ->
-                        placeResponse.place.location?.let { latLng ->
-                            onSelect(latLng, predictedText)
-                        }
-                    }
+                fetchPlace(prediction, context, onSelect)
             }
     )
+}
+
+fun fetchPlace(
+    prediction: AutocompletePrediction,
+    context: Context,
+    onFetch: (LatLng, String) -> Unit
+) {
+    var predictedText = prediction.getFullText(null).toString()
+    val placeId = prediction.placeId
+    val placesClient = Places.createClient(context)
+    val placeRequest =
+        FetchPlaceRequest.builder(placeId, listOf(Place.Field.LAT_LNG))
+            .build()
+
+    placesClient.fetchPlace(placeRequest)
+        .addOnSuccessListener { placeResponse ->
+            placeResponse.place.location?.let { latLng ->
+                onFetch(latLng, predictedText)
+            }
+        }
 }
 

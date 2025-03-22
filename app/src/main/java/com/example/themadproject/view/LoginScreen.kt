@@ -129,21 +129,21 @@ private fun verifyLogin(
     onLogin: (User) -> Unit
 ) {
     if (username.value.isBlank() || password.value.isBlank()) {
-        showSnackbar("Please fill in the fields", "Login error")
+        showSnackbar("Please fill in the fields", "Error")
         return
     }
     val account = users.find { it.UserUsername == username.value }
     if (account == null) {
-        showSnackbar("Account doesn't exist", "error")
+        showSnackbar("Account doesn't exist", "Error")
         username.value = ""
         password.value = ""
         return
     } else if (account.UserPassword != password.value) {
-        showSnackbar("Password is incorrect", "error")
+        showSnackbar("Password is incorrect", "Error")
         password.value = ""
         return
     } else {
-        showSnackbar("Successfully logged in!", "action")
+        showSnackbar("Successfully logged in!", "Success")
         onLogin(account)
         return
     }
