@@ -1,6 +1,13 @@
 package com.example.themadproject.view
 
+import PlaceSearchBar
+import android.util.Log
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -13,8 +20,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
 import com.example.myapplication.view.navigation.MapBackground
 import com.example.myapplication.viewmodel.StaySafeViewModel
@@ -24,17 +34,18 @@ import com.example.themadproject.view.entity.sheet.ActivityBottomSheet
 import com.example.themadproject.view.entity.sheet.FriendBottomSheet
 import com.example.themadproject.view.entity.sheet.ProfileBottomSheet
 import com.example.themadproject.view.entity.sheet.SettingsBottomSheet
+import com.google.android.gms.maps.model.LatLng
 
 @Composable
 fun MainScreen(
     navController: NavController,
     viewModel: StaySafeViewModel
 ) {
+    var selectedLocation by remember { mutableStateOf<LatLng?>(null) }
     var activitySheetState by remember { mutableStateOf(false) }
     var friendSheetState by remember { mutableStateOf(false) }
     var profileSheetState by remember { mutableStateOf(false) }
     var settingsSheetState by remember { mutableStateOf(false) }
-
     val sheetItems = listOf(
         SheetItem(
             "Itineraries", R.drawable.travel, activitySheetState,
@@ -94,8 +105,36 @@ fun MainScreen(
     ) { innerPadding ->
         if (activitySheetState) ActivityBottomSheet({ activitySheetState = false }, viewModel)
         if (friendSheetState) FriendBottomSheet({ friendSheetState = false }, viewModel)
-        if (profileSheetState) ProfileBottomSheet({ profileSheetState = false }, viewModel, navController)
+        if (profileSheetState) ProfileBottomSheet(
+            { profileSheetState = false },
+            viewModel,
+            navController
+        )
         if (settingsSheetState) SettingsBottomSheet({ settingsSheetState = false })
-        MapBackground(modifier = Modifier.fillMaxSize().padding(innerPadding))
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+        ) {
+            MapBackground(
+                modifier = Modifier
+                    .matchParentSize(),
+                selectedLocation = selectedLocation
+            )
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .zIndex(1f),
+                verticalArrangement = Arrangement.Top,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Spacer(modifier = Modifier.height(16.dp))
+                PlaceSearchBar { place ->
+                    selectedLocation = place
+                    Log.d("HomeScreen", "Selected location: $selectedLocation")
+                }
+
+            }
+        }
     }
 }

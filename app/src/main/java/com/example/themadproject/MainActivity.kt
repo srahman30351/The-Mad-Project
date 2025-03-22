@@ -13,10 +13,14 @@ import com.example.myapplication.viewmodel.StaySafeViewModel
 import com.example.themadproject.ui.theme.TheMADProjectTheme
 import com.example.themadproject.view.MainScreen
 import com.example.themadproject.view.SignupScreen
+import com.google.android.libraries.places.api.Places
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if (!Places.isInitialized()) {
+            Places.initialize(applicationContext, "AIzaSyBpRd8pMrcC34T4riIish0azmEmyu8QreQ")
+        }
         enableEdgeToEdge()
         setContent {
             TheMADProjectTheme {

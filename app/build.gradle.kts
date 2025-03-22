@@ -77,4 +77,7 @@ dependencies {
     implementation("com.google.android.material:material:1.12.0")
     implementation ("com.google.android.libraries.places:places:4.2.0")
     implementation("io.coil-kt:coil-compose:2.7.0")
+    implementation("androidx.compose.foundation:foundation:1.5.1")
+    implementation("androidx.compose.ui:ui:1.5.1")
+    implementation("com.google.accompanist:accompanist-permissions:0.37.2")
 }
