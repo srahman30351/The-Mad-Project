@@ -1,14 +1,17 @@
 import android.content.Context
 import android.util.Log
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.DockedSearchBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.SearchBarDefaults.InputField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -37,7 +40,7 @@ fun PlaceSearchBar(onPlaceSelected: (LatLng) -> Unit) {
     Log.d("SearchBar", "SearchBar composable is running")
 
     DockedSearchBar(
-        inputField = {
+        inputField =  {
             InputField(
                 query = query,
                 onQueryChange = {
@@ -52,9 +55,23 @@ fun PlaceSearchBar(onPlaceSelected: (LatLng) -> Unit) {
                 leadingIcon = {
                     Icon(imageVector = Icons.Default.Search, contentDescription = "Search")
                 },
+                trailingIcon = {
+                    if (expanded || query.isNotEmpty()) Icon(imageVector = Icons.Default.Close,
+                        contentDescription = "Close",
+                        modifier = Modifier.clickable(
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() },
+                            onClick = {
+                                query = ""
+                                expanded = false
+                            }
+                        )
+                    )
+                }
             )
         },
         expanded = expanded,
+
         onExpandedChange = { },
         content = {
             if (predictions.isNotEmpty()) {
