@@ -57,14 +57,16 @@ fun PlaceSearchBar(onPlaceSelected: (LatLng) -> Unit) {
         expanded = expanded,
         onExpandedChange = { },
         content = {
-            HorizontalDivider(Modifier.padding(horizontal = 16.dp))
             if (predictions.isNotEmpty()) {
-                predictions.forEach { prediction ->
+                predictions.forEachIndexed { index, prediction ->
                     PredictionText(prediction, context, { latLng, text ->
                         onPlaceSelected(latLng)
                         query = text
                         expanded = false
                     })
+                    if (index != predictions.lastIndex) {
+                        HorizontalDivider(Modifier.padding(horizontal = 16.dp))
+                    }
                 }
             } else {
                 Text(
@@ -131,6 +133,5 @@ fun PredictionText(
                     }
             }
     )
-    HorizontalDivider(Modifier.padding(horizontal = 16.dp))
 }
 
