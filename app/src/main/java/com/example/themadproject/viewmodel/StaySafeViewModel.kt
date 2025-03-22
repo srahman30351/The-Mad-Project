@@ -1,5 +1,6 @@
 package com.example.myapplication.viewmodel
 
+import android.content.Context
 import android.net.Uri
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
@@ -8,24 +9,26 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.myapplication.model.api.StaySafeClient
+import com.example.myapplication.model.api.StaySafeService
 import com.example.myapplication.model.data.Activity
 import com.example.myapplication.model.data.Location
 import com.example.myapplication.model.data.Position
 import com.example.myapplication.model.data.Status
 import com.example.myapplication.model.data.User
+import com.example.themadproject.model.api.imgbbClient
 import com.example.themadproject.model.data.ErrorMessage
-import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.Moshi
-import com.squareup.moshi.Types
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.RequestBody.Companion.asRequestBody
-import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
 import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
+import java.io.InputStream
 
 class StaySafeViewModel : ViewModel() {
 
@@ -77,7 +80,14 @@ class StaySafeViewModel : ViewModel() {
         _user.value = user
     }
 
-    fun createUser(user: User, onCreate: () -> Unit)= viewModelScope.launch {
+    fun findUser(username: String, onResult: (Boolean) -> Unit) = viewModelScope.launch {
+        val response = StaySafeClient.api.getUsersByUsername(username)
+        //Since the API does not handle unique usernames, the first user will be picked if there's a duplicate
+        if(response.isSuccessful) _user.value = response.body()?.first()
+        onResult(response.isSuccessful)
+    }
+
+    fun createUser(user: User, onCreate: () -> Unit) = viewModelScope.launch {
         val response = StaySafeClient.api.postUser(user)
         if (response.isSuccessful) {
             onCreate()
@@ -93,6 +103,58 @@ class StaySafeViewModel : ViewModel() {
                 val errorMessages = adapter.fromJson(errorBody)
                 errorMessages?.message?.forEach {
                     showPatientSnackbar(it, "Error")
+                }
+            }
+        }
+    }
+
+    fun getFileFromUri(context: Context, uri: Uri): File? {
+        try {
+            // Open the content resolver to get the input stream
+            val inputStream: InputStream? = context.contentResolver.openInputStream(uri)
+
+            // Generate a temporary file to store the content
+            val tempFile = File(context.cacheDir, "temp_file")
+
+            // Write the content to the temporary file
+            val outputStream = FileOutputStream(tempFile)
+            val buffer = ByteArray(1024)
+            var length: Int
+            while (inputStream?.read(buffer).also { length = it ?: -1 } != -1) {
+                outputStream.write(buffer, 0, length)
+            }
+
+            // Close streams
+            inputStream?.close()
+            outputStream.close()
+
+            return tempFile
+
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+        return null
+    }
+
+    fun generateImageUrl(
+        context: Context,
+        imageUri: Uri?,
+        onUpload: (String) -> Unit
+    ) = viewModelScope.launch {
+        if (imageUri != null) {
+            val file = getFileFromUri(context, imageUri)
+            file?.let {
+                val requestFile = RequestBody.create("image/*".toMediaTypeOrNull(), file)
+                val body = MultipartBody.Part.createFormData("image", file.name, requestFile)
+                val response = imgbbClient.api.uploadImage(image = body, expiration = 7889400)
+                if (response.isSuccessful) {
+                    response.body()?.let {
+                        onUpload(it.data.display_url)
+                    }
+                } else {
+                    response.errorBody()?.let {
+                        showSnackbar(it.string(), "Error")
+                    }
                 }
             }
         }

@@ -10,6 +10,7 @@ import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.Query
 
 interface StaySafeService {
 
@@ -27,6 +28,11 @@ interface StaySafeService {
 
     @GET("users")
     suspend fun getUsers(): List<User>
+
+    @GET("users")
+    suspend fun getUsersByUsername(
+    @Query("UserUsername") username: String
+    ): Response<List<User>>
 
     @POST("users")
     suspend fun postUser(@Body user: User): Response<ResponseBody>

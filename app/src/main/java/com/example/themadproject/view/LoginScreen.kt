@@ -47,7 +47,6 @@ fun LoginScreen(
     navController: NavController,
     viewModel: StaySafeViewModel
 ) {
-    val users = viewModel.users.collectAsState().value
     var username = remember { mutableStateOf("FreedomFighter222") }
     var password = remember { mutableStateOf("123123123") }
     var showPassword by remember { mutableStateOf(false) }
@@ -93,23 +92,8 @@ fun LoginScreen(
             Spacer(modifier = Modifier.height(16.dp))
             Button(
                 modifier = Modifier.width(200.dp),
-                onClick = {
-                        verifyLogin(
-                            username = username,
-                            password = password,
-                            users = users,
-                            showSnackbar = { message, action ->
-                                viewModel.showSnackbar(
-                                    message,
-                                    action
-                                )
-                            },
-                            onLogin = { account ->
-                                viewModel.setUser(account)
-                                navController.navigate(Screen.MainScreen.route)
-                            },
-                        )
-                }) {
+                onClick = { verifyLogin(username, password, viewModel, navController) }
+            ) {
                 Text(text = "Login")
             }
             TextButton(onClick = {
@@ -124,28 +108,27 @@ fun LoginScreen(
 private fun verifyLogin(
     username: MutableState<String>,
     password: MutableState<String>,
-    users: List<User>,
-    showSnackbar: (String, String) -> Unit,
-    onLogin: (User) -> Unit
+    viewModel: StaySafeViewModel,
+    navController: NavController
 ) {
     if (username.value.isBlank() || password.value.isBlank()) {
-        showSnackbar("Please fill in the fields", "Error")
+        viewModel.showSnackbar("Please fill in the fields", "Error")
         return
     }
-    val account = users.find { it.UserUsername == username.value }
-    if (account == null) {
-        showSnackbar("Account doesn't exist", "Error")
-        username.value = ""
-        password.value = ""
-        return
-    } else if (account.UserPassword != password.value) {
-        showSnackbar("Password is incorrect", "Error")
-        password.value = ""
-        return
-    } else {
-        showSnackbar("Successfully logged in!", "Success")
-        onLogin(account)
-        return
+
+    var handleResult: (Boolean) -> Unit = { isExist ->
+        if (!isExist) {
+            viewModel.showSnackbar("Account doesn't exist", "Error")
+        } else if (viewModel.user.value?.UserPassword != password.value) {
+            viewModel.showSnackbar("Password is incorrect", "Error")
+            viewModel.setUser(null)
+            password.value = ""
+        } else {
+            viewModel.showSnackbar("Successfully logged in!", "Success")
+            navController.navigate(Screen.MainScreen.route)
+        }
     }
+
+    viewModel.findUser(username.value, handleResult)
 }
 

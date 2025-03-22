@@ -1,5 +1,9 @@
 package com.example.themadproject.view
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -13,6 +17,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -33,12 +38,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.myapplication.model.data.User
@@ -57,13 +65,20 @@ fun SignupScreen(
     var lastName = remember { mutableStateOf("Roughman") }
     var phoneNumber = remember { mutableStateOf("+44 7911 987654") }
     var imageUrl =
-        remember { mutableStateOf("https://i.pinimg.com/474x/85/b4/06/85b4066060120a0ee602815af9da2d0d.jpg") }
+        remember { mutableStateOf("https://t3.ftcdn.net/jpg/08/05/28/22/360_F_805282248_LHUxw7t2pnQ7x8lFEsS2IZgK8IGFXePS.jpg") }
     var password = remember { mutableStateOf("123123123") }
     var showPassword by remember { mutableStateOf(false) }
+    var selectedImageUri by remember {
+        mutableStateOf<Uri?>(null)
+    }
+    val photoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia(),
+        onResult = { uri -> selectedImageUri = uri })
+
+    val context = LocalContext.current
 
     Scaffold(
-        snackbarHost = { SnackbarHost(hostState = viewModel.snackbarHostState.value) }
-    ) { paddingValues ->
+        snackbarHost = { SnackbarHost(hostState = viewModel.snackbarHostState.value) }) { paddingValues ->
         Column(
             Modifier
                 .fillMaxSize()
@@ -104,13 +119,7 @@ fun SignupScreen(
                 value = phoneNumber.value,
                 onValueChange = { phoneNumber.value = it },
                 label = { Text("Phone Number") },
-                singleLine = true
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            OutlinedTextField(
-                value = imageUrl.value,
-                onValueChange = { imageUrl.value = it },
-                label = { Text("Image Url") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                 singleLine = true
             )
             Spacer(modifier = Modifier.height(16.dp))
@@ -126,8 +135,7 @@ fun SignupScreen(
                         modifier = Modifier.clickable(
                             indication = null,
                             interactionSource = remember { MutableInteractionSource() },
-                            onClick = { showPassword = !showPassword }
-                        )
+                            onClick = { showPassword = !showPassword })
                     )
                 },
                 visualTransformation = if (showPassword) VisualTransformation.None
@@ -136,32 +144,19 @@ fun SignupScreen(
             )
             Spacer(modifier = Modifier.height(16.dp))
             Button(
-                modifier = Modifier.width(200.dp),
-                onClick = {
+                modifier = Modifier.width(200.dp), onClick = {
                     verifySignup(
-                        username.value, firstName.value, lastName.value, password.value, phoneNumber.value, imageUrl.value, users,
-                        showSnackbar = { message, action ->
-                            viewModel.showSnackbar(
-                                message,
-                                action
-                            )
-                        },
-                        onSignup = {
-                            viewModel.createUser(
-                                user = it,
-                                onCreate = {
-                                    viewModel.setUser(it)
-                                    viewModel.showSnackbar(
-                                        "Account successfully created!",
-                                        "Success"
-                                    )
-                                    navController.navigate(Screen.MainScreen.route)
-                                }
-                            )
-                        }
+                        username.value,
+                        firstName.value,
+                        lastName.value,
+                        password.value,
+                        phoneNumber.value,
+                        imageUrl.value,
+                        viewModel,
+                        navController
                     )
-
-                }) {
+                }
+            ) {
                 Text(text = "Create Account")
             }
             TextButton(onClick = {
@@ -169,6 +164,14 @@ fun SignupScreen(
             }) {
                 Text(text = "Go back to login")
             }
+            TextButton(onClick = {
+                photoPickerLauncher.launch(
+                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                )
+            }) {
+                Text(text = "Pick an image")
+            }
+
         }
     }
 }
@@ -181,6 +184,8 @@ fun ProfileCard(
     phoneNumber: String,
     imageUrl: String
 ) {
+
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -188,8 +193,7 @@ fun ProfileCard(
         colors = CardDefaults.cardColors(
             containerColor = Color(0xffA3C9A8)
         ),
-        onClick = { }
-    ) {
+        onClick = { }) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -199,8 +203,7 @@ fun ProfileCard(
             Card(Modifier.size(150.dp)) {
                 AsyncImage(
                     model = imageUrl,
-                    modifier = Modifier
-                        .aspectRatio(1f / 1f),
+                    modifier = Modifier.aspectRatio(1f / 1f),
                     contentDescription = null,
                     contentScale = ContentScale.Crop
                 )
@@ -218,9 +221,7 @@ fun ProfileCard(
                     maxLines = 2
                 )
                 Text(
-                    text = phoneNumber,
-                    overflow = TextOverflow.Ellipsis,
-                    maxLines = 1
+                    text = phoneNumber, overflow = TextOverflow.Ellipsis, maxLines = 1
 
                 )
             }
@@ -235,31 +236,27 @@ private fun verifySignup(
     password: String,
     phoneNumber: String,
     imageUrl: String,
-    users: List<User>,
-    showSnackbar: (String, String) -> Unit,
-    onSignup: (User) -> Unit
+    viewModel: StaySafeViewModel,
+    navController: NavController
 ) {
     //The StaySafe API error response will take care of all other validations to meet the POST requirements and will send a the issue in a snackBar to the user
-    if (username.isBlank() || firstName.isBlank() || lastName.isBlank() || password.isBlank() || phoneNumber.isBlank() || imageUrl.isBlank()) {
-        showSnackbar("Please fill in the fields", "Error")
+    if (username.isBlank() || firstName.isBlank() || lastName.isBlank() || password.isBlank() || phoneNumber.isBlank()) {
+        viewModel.showSnackbar("Please fill in the fields", "Error")
         return
     }
-    val account = users.find { it.UserUsername == username }
-    if (account != null) {
-        showSnackbar("Username already taken", "Error")
-        return
-    } else {
-        val user = User(
-            username,
-            firstName,
-            lastName,
-            password,
-            phoneNumber,
-            imageUrl
-        )
-        onSignup(user)
-        return
+
+    var handleResult: (Boolean) -> Unit = { isExist ->
+        if (isExist) {
+            viewModel.showSnackbar("Username already taken", "Error")
+        } else {
+            viewModel.setUser(User(username, firstName, lastName, password, phoneNumber, imageUrl))
+            navController.navigate(Screen.MainScreen.route)
+            viewModel.showSnackbar(
+                "Account successfully created!", "Success"
+            )
+        }
     }
+    viewModel.findUser(username, handleResult)
 }
 
 
