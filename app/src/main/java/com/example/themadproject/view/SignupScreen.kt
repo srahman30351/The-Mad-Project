@@ -138,20 +138,26 @@ fun SignupScreen(
             Button(
                 modifier = Modifier.width(200.dp),
                 onClick = {
-                    val user = User(
-                        username.value,
-                        firstName.value,
-                        lastName.value,
-                        password.value,
-                        phoneNumber.value,
-                        imageUrl.value
-                    )
-                    viewModel.createUser(
-                        user = user,
-                        onCreate = {
-                            viewModel.setUser(user)
-                            viewModel.showSnackbar("Account successfully created!", "Success")
-                            navController.navigate(Screen.LoginScreen.route)
+                    verifySignup(
+                        username.value, firstName.value, lastName.value, password.value, phoneNumber.value, imageUrl.value, users,
+                        showSnackbar = { message, action ->
+                            viewModel.showSnackbar(
+                                message,
+                                action
+                            )
+                        },
+                        onSignup = {
+                            viewModel.createUser(
+                                user = it,
+                                onCreate = {
+                                    viewModel.setUser(it)
+                                    viewModel.showSnackbar(
+                                        "Account successfully created!",
+                                        "Success"
+                                    )
+                                    navController.navigate(Screen.MainScreen.route)
+                                }
+                            )
                         }
                     )
 
@@ -223,27 +229,37 @@ fun ProfileCard(
 }
 
 private fun verifySignup(
-    username: MutableState<String>,
-    firstName: MutableState<String>,
-    lastName: MutableState<String>,
-    password: MutableState<String>,
-    phoneNumber: MutableState<String>,
-    imageUrl: MutableState<String>,
+    username: String,
+    firstName: String,
+    lastName: String,
+    password: String,
+    phoneNumber: String,
+    imageUrl: String,
+    users: List<User>,
+    showSnackbar: (String, String) -> Unit,
     onSignup: (User) -> Unit
 ) {
-    onSignup(
-        User(
-            username.value,
-            firstName.value,
-            lastName.value,
-            password.value,
-            phoneNumber.value,
-            imageUrl.value,
-            0.0,
-            0.0,
-            0.0
+    //The StaySafe API error response will take care of all other validations to meet the POST requirements and will send a the issue in a snackBar to the user
+    if (username.isBlank() || firstName.isBlank() || lastName.isBlank() || password.isBlank() || phoneNumber.isBlank() || imageUrl.isBlank()) {
+        showSnackbar("Please fill in the fields", "Error")
+        return
+    }
+    val account = users.find { it.UserUsername == username }
+    if (account != null) {
+        showSnackbar("Username already taken", "Error")
+        return
+    } else {
+        val user = User(
+            username,
+            firstName,
+            lastName,
+            password,
+            phoneNumber,
+            imageUrl
         )
-    )
+        onSignup(user)
+        return
+    }
 }
 
 
