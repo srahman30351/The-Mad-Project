@@ -2,7 +2,6 @@ package com.example.myapplication.viewmodel
 
 import android.content.Context
 import android.net.Uri
-import android.provider.MediaStore
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.State
@@ -10,7 +9,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.myapplication.model.api.StaySafeClient
-import com.example.myapplication.model.api.StaySafeService
 import com.example.myapplication.model.data.Activity
 import com.example.myapplication.model.data.Location
 import com.example.myapplication.model.data.Position
@@ -25,12 +23,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
-import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.ResponseBody
 import java.io.File
-import java.io.FileOutputStream
-import java.io.IOException
-import java.io.InputStream
 
 class StaySafeViewModel : ViewModel() {
 
@@ -53,10 +48,10 @@ class StaySafeViewModel : ViewModel() {
     val user: StateFlow<User?> get() = _user
 
     fun loadContent() = viewModelScope.launch {
-            getLocations()
-            getUsers()
-            getActivities()
-        }
+        getLocations()
+        getUsers()
+        getActivities()
+    }
 
     fun setUser(user: User?) = viewModelScope.launch {
         _user.value = user
@@ -69,24 +64,53 @@ class StaySafeViewModel : ViewModel() {
         onResult(response.isSuccessful)
     }
 
+    fun deleteUser(user: User, onDelete: () -> Unit) = viewModelScope.launch {
+        val response = StaySafeClient.api.deleteUser(user.UserID)
+        if (response.isSuccessful) {
+            onDelete()
+            showSnackbar("Account successfully deleted!", "Success")
+        } else {
+            response.errorBody()?.let { errorBody ->
+                getErrorResponse(errorBody)
+            }
+        }
+    }
+
+    fun editUser(user: User, onEdit: () -> Unit) = viewModelScope.launch {
+        val response = StaySafeClient.api.editUser(user.UserID, user)
+        if (response.isSuccessful) {
+            onEdit()
+            showSnackbar("Account successfully edited!", "Success")
+        } else {
+            response.errorBody()?.let { errorBody ->
+                getErrorResponse(errorBody)
+            }
+        }
+    }
+
     fun createUser(user: User, onCreate: () -> Unit) = viewModelScope.launch {
         val response = StaySafeClient.api.postUser(user)
         if (response.isSuccessful) {
             onCreate()
+            showSnackbar("Account successfully created!", "Success")
         } else {
             response.errorBody()?.let { errorBody ->
-                var errorBody = errorBody.string()
-                    .replace("\"message\":\"", "\"message\":[\"")
-                    .replace("\"}", "\"]}")
-                val moshi = Moshi.Builder()
-                    .add(KotlinJsonAdapterFactory())
-                    .build()
-                val adapter = moshi.adapter(ErrorMessage::class.java)
-                val errorMessages = adapter.fromJson(errorBody)
-                errorMessages?.message?.forEach {
-                    showPatientSnackbar(it, "Error")
-                }
+                getErrorResponse(errorBody)
             }
+        }
+    }
+
+    private fun getErrorResponse(errorBody: ResponseBody) {
+        var errorBody = errorBody.string()
+            .replace("\"message\":\"", "\"message\":[\"")
+            .replace("\"}", "\"]}")
+        val moshi = Moshi.Builder()
+            .add(KotlinJsonAdapterFactory())
+            .build()
+        val adapter = moshi.adapter(ErrorMessage::class.java)
+        val errorMessages = adapter.fromJson(errorBody)
+        errorMessages?.message?.forEach {
+            showPatientSnackbar(it, "Error")
         }
     }
 
@@ -106,7 +130,7 @@ class StaySafeViewModel : ViewModel() {
                         }
                     } else {
                         response.errorBody()?.let {
-                            showSnackbar(it.string(), "Error")
+                            showSnackbar("Upload failed", "Error")
                         }
                     }
                 }

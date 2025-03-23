@@ -29,18 +29,18 @@ fun ProfileCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp, horizontal = 8.dp),
+            .padding(8.dp),
         colors = CardDefaults.cardColors(
             containerColor = Color(0xffA3C9A8)
-        ),
-        onClick = { }) {
+        )
+    ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 8.dp, horizontal = 12.dp),
+                .padding(16.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            UploadIcon(imageUrl, viewModel, onUpload)
+            UploadPicture(imageUrl, viewModel, onUpload)
             Column {
                 Text(
                     text = username,

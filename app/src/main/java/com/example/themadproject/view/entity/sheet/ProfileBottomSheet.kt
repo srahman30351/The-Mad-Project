@@ -55,7 +55,7 @@ fun ProfileBottomSheet(
                 horizontalArrangement = Arrangement.spacedBy(24.dp, Alignment.CenterHorizontally)
             ) {
                 Button(onClick = {
-
+                    navController.navigate(Screen.EditProfile.route)
                 }) {
                     Text(text = "Edit Profile")
                 }

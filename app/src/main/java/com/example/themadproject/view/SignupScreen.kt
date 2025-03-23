@@ -1,22 +1,36 @@
 package com.example.themadproject.view
 
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.myapplication.model.data.User
-import com.example.themadproject.view.Screen
 import com.example.myapplication.viewmodel.StaySafeViewModel
+import com.example.themadproject.R
 import com.example.themadproject.view.entity.UserForm
 import kotlin.text.isBlank
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SignupScreen(
     navController: NavController,
@@ -42,11 +56,7 @@ fun SignupScreen(
                     viewModel.showSnackbar("Username already taken", "Error")
                 } else {
                     viewModel.createUser(it, {
-                        viewModel.setUser(it)
-                        navController.navigate(Screen.MainScreen.route)
-                        viewModel.showSnackbar(
-                            "Account successfully created!", "Success"
-                        )
+                        viewModel.findUser(it.UserUsername, { navController.navigate(Screen.MainScreen.route) })
                     })
                 }
             }
@@ -56,18 +66,36 @@ fun SignupScreen(
 
 
     Scaffold(
-        snackbarHost = { SnackbarHost(hostState = viewModel.snackbarHostState.value) }) { paddingValues ->
-        UserForm(
-            username,
-            password,
-            firstName,
-            lastName,
-            phoneNumber,
-            imageUrl,
-            viewModel,
-            navController,
-            verifySignup,
-            Modifier.padding(paddingValues),
-        )
+        snackbarHost = { SnackbarHost(hostState = viewModel.snackbarHostState.value) },
+        topBar = {
+            TopAppBar(title = { Text("Sign up") },
+                navigationIcon = {
+                    IconButton(onClick = { navController.navigate(Screen.LoginScreen.route) }
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back arrow",
+                        )
+                    }
+                }
+            )
+        }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier.padding(paddingValues),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            UserForm(username, password, firstName, lastName, phoneNumber, imageUrl, viewModel)
+            Spacer(modifier = Modifier.height(16.dp))
+            Button(
+                modifier = Modifier.width(200.dp),
+                onClick = {
+                    verifySignup(User(username.value, firstName.value, lastName.value, password.value, phoneNumber.value, imageUrl.value)
+                    )
+                }
+            ) {
+                Text(text = "Create Account")
+            }
+        }
     }
 }
