@@ -1,265 +1,101 @@
 package com.example.themadproject.view
 
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import coil.compose.AsyncImage
 import com.example.myapplication.model.data.User
-import com.example.myapplication.view.navigation.Screen
 import com.example.myapplication.viewmodel.StaySafeViewModel
 import com.example.themadproject.R
+import com.example.themadproject.view.entity.UserForm
+import kotlin.text.isBlank
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SignupScreen(
     navController: NavController,
     viewModel: StaySafeViewModel,
 ) {
-    val users = viewModel.users.collectAsState().value
     var username = remember { mutableStateOf("FreedomFighter222") }
+    var password = remember { mutableStateOf("123123123") }
     var firstName = remember { mutableStateOf("Johnson") }
     var lastName = remember { mutableStateOf("Roughman") }
     var phoneNumber = remember { mutableStateOf("+44 7911 987654") }
     var imageUrl =
-        remember { mutableStateOf("https://i.pinimg.com/474x/85/b4/06/85b4066060120a0ee602815af9da2d0d.jpg") }
-    var password = remember { mutableStateOf("123123123") }
-    var showPassword by remember { mutableStateOf(false) }
+        remember { mutableStateOf("https://t3.ftcdn.net/jpg/08/05/28/22/360_F_805282248_LHUxw7t2pnQ7x8lFEsS2IZgK8IGFXePS.jpg") }
+
+
+    var verifySignup: (User) -> Unit = {
+        //The StaySafe API error response will take care of all other validations to meet the POST requirements and will send a the issue in a snackBar to the user
+        if (it.UserFirstname.isBlank() || it.UserFirstname.isBlank() || it.UserLastname.isBlank() || it.UserPassword.isBlank() || it.UserPhone.isBlank()) {
+            viewModel.showSnackbar("Please fill in the fields", "Error")
+        } else {
+
+            var handleResult: (Boolean) -> Unit = { isExist ->
+                if (isExist) {
+                    viewModel.showSnackbar("Username already taken", "Error")
+                } else {
+                    viewModel.createUser(it, {
+                        viewModel.findUser(it.UserUsername, { navController.navigate(Screen.MainScreen.route) })
+                    })
+                }
+            }
+            viewModel.findUser(it.UserUsername, onResult = handleResult)
+        }
+    }
+
 
     Scaffold(
-        snackbarHost = { SnackbarHost(hostState = viewModel.snackbarHostState.value) }
+        snackbarHost = { SnackbarHost(hostState = viewModel.snackbarHostState.value) },
+        topBar = {
+            TopAppBar(title = { Text("Sign up") },
+                navigationIcon = {
+                    IconButton(onClick = { navController.navigate(Screen.LoginScreen.route) }
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back arrow",
+                        )
+                    }
+                }
+            )
+        }
     ) { paddingValues ->
         Column(
-            Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = 20.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            modifier = Modifier.padding(paddingValues),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            ProfileCard(
-                username.value,
-                firstName.value,
-                lastName.value,
-                phoneNumber.value,
-                imageUrl.value
-            )
-            OutlinedTextField(
-                value = firstName.value,
-                onValueChange = { firstName.value = it },
-                label = { Text("First Name") },
-                singleLine = true
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            OutlinedTextField(
-                value = lastName.value,
-                onValueChange = { lastName.value = it },
-                label = { Text("Last Name") },
-                singleLine = true
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            OutlinedTextField(
-                value = username.value,
-                onValueChange = { username.value = it },
-                label = { Text("Username") },
-                singleLine = true
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            OutlinedTextField(
-                value = phoneNumber.value,
-                onValueChange = { phoneNumber.value = it },
-                label = { Text("Phone Number") },
-                singleLine = true
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            OutlinedTextField(
-                value = imageUrl.value,
-                onValueChange = { imageUrl.value = it },
-                label = { Text("Image Url") },
-                singleLine = true
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            OutlinedTextField(
-                value = password.value,
-                onValueChange = { password.value = it },
-                label = { Text("Password") },
-                trailingIcon = {
-                    Icon(
-                        painter = if (showPassword) painterResource(R.drawable.visibility)
-                        else painterResource(R.drawable.visibility_off),
-                        contentDescription = null,
-                        modifier = Modifier.clickable(
-                            indication = null,
-                            interactionSource = remember { MutableInteractionSource() },
-                            onClick = { showPassword = !showPassword }
-                        )
-                    )
-                },
-                visualTransformation = if (showPassword) VisualTransformation.None
-                else PasswordVisualTransformation(),
-                singleLine = true
-            )
+            UserForm(username, password, firstName, lastName, phoneNumber, imageUrl, viewModel)
             Spacer(modifier = Modifier.height(16.dp))
             Button(
                 modifier = Modifier.width(200.dp),
                 onClick = {
-                    verifySignup(
-                        username.value, firstName.value, lastName.value, password.value, phoneNumber.value, imageUrl.value, users,
-                        showSnackbar = { message, action ->
-                            viewModel.showSnackbar(
-                                message,
-                                action
-                            )
-                        },
-                        onSignup = {
-                            viewModel.createUser(
-                                user = it,
-                                onCreate = {
-                                    viewModel.setUser(it)
-                                    viewModel.showSnackbar(
-                                        "Account successfully created!",
-                                        "Success"
-                                    )
-                                    navController.navigate(Screen.MainScreen.route)
-                                }
-                            )
-                        }
+                    verifySignup(User(username.value, firstName.value, lastName.value, password.value, phoneNumber.value, imageUrl.value)
                     )
-
-                }) {
+                }
+            ) {
                 Text(text = "Create Account")
             }
-            TextButton(onClick = {
-                navController.navigate(Screen.LoginScreen.route)
-            }) {
-                Text(text = "Go back to login")
-            }
         }
     }
 }
-
-@Composable
-fun ProfileCard(
-    username: String,
-    firstName: String,
-    lastName: String,
-    phoneNumber: String,
-    imageUrl: String
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp, horizontal = 8.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color(0xffA3C9A8)
-        ),
-        onClick = { }
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp, horizontal = 12.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Card(Modifier.size(150.dp)) {
-                AsyncImage(
-                    model = imageUrl,
-                    modifier = Modifier
-                        .aspectRatio(1f / 1f),
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop
-                )
-            }
-            Column {
-                Text(
-                    text = username,
-                    fontWeight = FontWeight.Black,
-                    overflow = TextOverflow.Ellipsis,
-                    maxLines = 2
-                )
-                Text(
-                    text = "${firstName} ${lastName}",
-                    overflow = TextOverflow.Ellipsis,
-                    maxLines = 2
-                )
-                Text(
-                    text = phoneNumber,
-                    overflow = TextOverflow.Ellipsis,
-                    maxLines = 1
-
-                )
-            }
-        }
-    }
-}
-
-private fun verifySignup(
-    username: String,
-    firstName: String,
-    lastName: String,
-    password: String,
-    phoneNumber: String,
-    imageUrl: String,
-    users: List<User>,
-    showSnackbar: (String, String) -> Unit,
-    onSignup: (User) -> Unit
-) {
-    //The StaySafe API error response will take care of all other validations to meet the POST requirements and will send a the issue in a snackBar to the user
-    if (username.isBlank() || firstName.isBlank() || lastName.isBlank() || password.isBlank() || phoneNumber.isBlank() || imageUrl.isBlank()) {
-        showSnackbar("Please fill in the fields", "Error")
-        return
-    }
-    val account = users.find { it.UserUsername == username }
-    if (account != null) {
-        showSnackbar("Username already taken", "Error")
-        return
-    } else {
-        val user = User(
-            username,
-            firstName,
-            lastName,
-            password,
-            phoneNumber,
-            imageUrl
-        )
-        onSignup(user)
-        return
-    }
-}
-
-

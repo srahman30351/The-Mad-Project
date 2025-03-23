@@ -30,7 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.myapplication.model.data.User
-import com.example.myapplication.view.navigation.Screen
+import com.example.themadproject.view.Screen
 import com.example.myapplication.viewmodel.StaySafeViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -55,7 +55,7 @@ fun ProfileBottomSheet(
                 horizontalArrangement = Arrangement.spacedBy(24.dp, Alignment.CenterHorizontally)
             ) {
                 Button(onClick = {
-
+                    navController.navigate(Screen.EditProfile.route)
                 }) {
                     Text(text = "Edit Profile")
                 }

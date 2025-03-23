@@ -9,5 +9,6 @@ data class User(
     val UserImageURL: String,
     val UserLatitude: Double = 0.0,
     val UserLongitude: Double = 0.0,
-    val UserTimestamp: Double = 0.0
+    val UserTimestamp: Double = 0.0,
+    val UserID: Int = 1
 )

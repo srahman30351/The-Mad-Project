@@ -1,5 +1,6 @@
 package com.example.myapplication.viewmodel
 
+import android.content.Context
 import android.net.Uri
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
@@ -13,18 +14,17 @@ import com.example.myapplication.model.data.Location
 import com.example.myapplication.model.data.Position
 import com.example.myapplication.model.data.Status
 import com.example.myapplication.model.data.User
+import com.example.themadproject.model.api.imgbbClient
 import com.example.themadproject.model.data.ErrorMessage
-import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.Moshi
-import com.squareup.moshi.Types
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
-import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.ResponseBody
 import java.io.File
 
 class StaySafeViewModel : ViewModel() {
@@ -47,56 +47,95 @@ class StaySafeViewModel : ViewModel() {
     private val _user = MutableStateFlow<User?>(null)
     val user: StateFlow<User?> get() = _user
 
-    init {
-        viewModelScope.launch {
-            getLocations()
-            getUsers()
-            getActivities()
-        }
+    fun loadContent() = viewModelScope.launch {
+        getLocations()
+        getUsers()
+        getActivities()
     }
 
-    /*
-        fun uploadImage(imageUri: Uri) {
-            val file = File(imageUri.path ?: "")
-
-            val mediaType = "image/*".toMediaTypeOrNull()
-            val requestBody = file.asRequestBody(mediaType)
-            val multipartBodyPart = MultipartBody.Part.createFormData(
-                "image",
-                file.name,
-                requestBody
-            )
-           val response = imgbbClient.api.uploadImage(image = multipartBodyPart)
-            println(response.body())
-
-        }
-
-     */
-     */
     fun setUser(user: User?) = viewModelScope.launch {
         _user.value = user
     }
 
-    fun createUser(user: User, onCreate: () -> Unit)= viewModelScope.launch {
-        val response = StaySafeClient.api.postUser(user)
+    fun findUser(username: String, onResult: (Boolean) -> Unit) = viewModelScope.launch {
+        val response = StaySafeClient.api.getUsersByUsername(username)
+        //Since the API does not handle unique usernames, the first user will be picked if there's a duplicate
+        if (response.isSuccessful) _user.value = response.body()?.first()
+        onResult(response.isSuccessful)
+    }
+
+    fun deleteUser(user: User, onDelete: () -> Unit) = viewModelScope.launch {
+        val response = StaySafeClient.api.deleteUser(user.UserID)
         if (response.isSuccessful) {
-            onCreate()
+            onDelete()
+            showSnackbar("Account successfully deleted!", "Success")
         } else {
             response.errorBody()?.let { errorBody ->
-                var errorBody = errorBody.string()
-                    .replace("\"message\":\"", "\"message\":[\"")
-                    .replace("\"}", "\"]}")
-                val moshi = Moshi.Builder()
-                    .add(KotlinJsonAdapterFactory())
-                    .build()
-                val adapter = moshi.adapter(ErrorMessage::class.java)
-                val errorMessages = adapter.fromJson(errorBody)
-                errorMessages?.message?.forEach {
-                    showPatientSnackbar(it, "Error")
-                }
+                getErrorResponse(errorBody)
             }
         }
     }
+
+    fun editUser(user: User, onEdit: () -> Unit) = viewModelScope.launch {
+        val response = StaySafeClient.api.editUser(user.UserID, user)
+        if (response.isSuccessful) {
+            onEdit()
+            showSnackbar("Account successfully edited!", "Success")
+        } else {
+            response.errorBody()?.let { errorBody ->
+                getErrorResponse(errorBody)
+            }
+        }
+    }
+
+    fun createUser(user: User, onCreate: () -> Unit) = viewModelScope.launch {
+        val response = StaySafeClient.api.postUser(user)
+        if (response.isSuccessful) {
+            onCreate()
+            showSnackbar("Account successfully created!", "Success")
+        } else {
+            response.errorBody()?.let { errorBody ->
+                getErrorResponse(errorBody)
+            }
+        }
+    }
+
+    private fun getErrorResponse(errorBody: ResponseBody) {
+        var errorBody = errorBody.string()
+            .replace("\"message\":\"", "\"message\":[\"")
+            .replace("\"}", "\"]}")
+        val moshi = Moshi.Builder()
+            .add(KotlinJsonAdapterFactory())
+            .build()
+        val adapter = moshi.adapter(ErrorMessage::class.java)
+        val errorMessages = adapter.fromJson(errorBody)
+        errorMessages?.message?.forEach {
+            showPatientSnackbar(it, "Error")
+        }
+    }
+
+    fun generateImageUrl(context: Context, imageUri: Uri, onUpload: (String) -> Unit) =
+        viewModelScope.launch {
+            var file = File(context.cacheDir, "profile_picture.jpg")
+            val inputStream = context.contentResolver.openInputStream(imageUri)
+            inputStream?.use { input ->
+                file.outputStream().use { output ->
+                    input.copyTo(output)
+                    val requestFile = file.asRequestBody("image/*".toMediaTypeOrNull())
+                    val body = MultipartBody.Part.createFormData("image", file.name, requestFile)
+                    val response = imgbbClient.api.uploadImage(image = body, expiration = 7889400)
+                    if (response.isSuccessful) {
+                        response.body()?.let {
+                            onUpload(it.data.display_url)
+                        }
+                    } else {
+                        response.errorBody()?.let {
+                            showSnackbar("Upload failed", "Error")
+                        }
+                    }
+                }
+            }
+        }
 
     private fun getLocations() = viewModelScope.launch {
         _locations.value = StaySafeClient.api.getLocations()

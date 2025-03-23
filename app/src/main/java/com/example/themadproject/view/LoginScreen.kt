@@ -4,7 +4,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -14,18 +13,14 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -33,21 +28,16 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.example.myapplication.model.data.User
-import com.example.myapplication.view.navigation.Screen
+import com.example.themadproject.view.Screen
 import com.example.myapplication.viewmodel.StaySafeViewModel
 import com.example.themadproject.R
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 
 @Composable
 fun LoginScreen(
     navController: NavController,
     viewModel: StaySafeViewModel
 ) {
-    val users = viewModel.users.collectAsState().value
     var username = remember { mutableStateOf("FreedomFighter222") }
     var password = remember { mutableStateOf("123123123") }
     var showPassword by remember { mutableStateOf(false) }
@@ -93,23 +83,8 @@ fun LoginScreen(
             Spacer(modifier = Modifier.height(16.dp))
             Button(
                 modifier = Modifier.width(200.dp),
-                onClick = {
-                        verifyLogin(
-                            username = username,
-                            password = password,
-                            users = users,
-                            showSnackbar = { message, action ->
-                                viewModel.showSnackbar(
-                                    message,
-                                    action
-                                )
-                            },
-                            onLogin = { account ->
-                                viewModel.setUser(account)
-                                navController.navigate(Screen.MainScreen.route)
-                            },
-                        )
-                }) {
+                onClick = { verifyLogin(username, password, viewModel, navController) }
+            ) {
                 Text(text = "Login")
             }
             TextButton(onClick = {
@@ -124,28 +99,27 @@ fun LoginScreen(
 private fun verifyLogin(
     username: MutableState<String>,
     password: MutableState<String>,
-    users: List<User>,
-    showSnackbar: (String, String) -> Unit,
-    onLogin: (User) -> Unit
+    viewModel: StaySafeViewModel,
+    navController: NavController
 ) {
     if (username.value.isBlank() || password.value.isBlank()) {
-        showSnackbar("Please fill in the fields", "Error")
+        viewModel.showSnackbar("Please fill in the fields", "Error")
         return
     }
-    val account = users.find { it.UserUsername == username.value }
-    if (account == null) {
-        showSnackbar("Account doesn't exist", "Error")
-        username.value = ""
-        password.value = ""
-        return
-    } else if (account.UserPassword != password.value) {
-        showSnackbar("Password is incorrect", "Error")
-        password.value = ""
-        return
-    } else {
-        showSnackbar("Successfully logged in!", "Success")
-        onLogin(account)
-        return
+
+    var handleResult: (Boolean) -> Unit = { isExist ->
+        if (!isExist) {
+            viewModel.showSnackbar("Account doesn't exist", "Error")
+        } else if (viewModel.user.value?.UserPassword != password.value) {
+            viewModel.showSnackbar("Password is incorrect", "Error")
+            viewModel.setUser(null)
+            password.value = ""
+        } else {
+            viewModel.showSnackbar("Successfully logged in!", "Success")
+            navController.navigate(Screen.MainScreen.route)
+        }
     }
+
+    viewModel.findUser(username.value, onResult = handleResult)
 }
 
