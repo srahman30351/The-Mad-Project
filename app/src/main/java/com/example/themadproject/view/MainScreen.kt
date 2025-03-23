@@ -41,6 +41,7 @@ fun MainScreen(
     navController: NavController,
     viewModel: StaySafeViewModel
 ) {
+    viewModel.loadContent() //Loads all content needed once screen is composed
     var selectedLocation by remember { mutableStateOf<LatLng?>(null) }
     var activitySheetState by remember { mutableStateOf(false) }
     var friendSheetState by remember { mutableStateOf(false) }

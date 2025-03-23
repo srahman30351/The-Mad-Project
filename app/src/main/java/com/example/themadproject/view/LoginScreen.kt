@@ -36,7 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.myapplication.model.data.User
-import com.example.myapplication.view.navigation.Screen
+import com.example.themadproject.view.Screen
 import com.example.myapplication.viewmodel.StaySafeViewModel
 import com.example.themadproject.R
 import kotlinx.coroutines.CoroutineScope
@@ -129,6 +129,6 @@ private fun verifyLogin(
         }
     }
 
-    viewModel.findUser(username.value, handleResult)
+    viewModel.findUser(username.value, onResult = handleResult)
 }
 

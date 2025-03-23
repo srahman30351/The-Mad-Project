@@ -8,7 +8,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.myapplication.view.LoginScreen
-import com.example.myapplication.view.navigation.Screen
+import com.example.themadproject.view.Screen
 import com.example.myapplication.viewmodel.StaySafeViewModel
 import com.example.themadproject.ui.theme.TheMADProjectTheme
 import com.example.themadproject.view.MainScreen
@@ -16,6 +16,7 @@ import com.example.themadproject.view.SignupScreen
 import com.google.android.libraries.places.api.Places
 
 class MainActivity : AppCompatActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         if (!Places.isInitialized()) {
