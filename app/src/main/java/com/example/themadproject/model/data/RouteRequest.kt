@@ -7,7 +7,7 @@ import com.google.android.libraries.places.api.model.EncodedPolyline
 import com.google.android.libraries.places.api.model.Leg
 import com.google.android.libraries.places.api.model.RoutingParameters.RoutingPreference
 import com.google.android.libraries.places.api.model.RoutingParameters.TravelMode
-import com.squareup.okhttp.Route
+
 
 
 data class RouteRequest(
@@ -18,13 +18,13 @@ data class RouteRequest(
     val computeAlernativeRoutes: Boolean = false
 )
 data class Location(
-    val LatLng: LatLng
+    val latLng: LatLng
 )
 data class RouteResponse(
     val routes: List<Route>
 )
 data class Route(
-    val overviewPolyline: OverviewPolyline,
+    val polyline: OverviewPolyline,
     val legs: List<Leg>
 )
 data class OverviewPolyline(

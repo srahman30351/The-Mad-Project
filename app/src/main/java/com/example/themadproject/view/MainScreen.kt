@@ -66,6 +66,9 @@ fun MainScreen(
     val route2Line = remember { mutableStateOf<PolylineOptions?>(null) }
     val estTime = remember { mutableStateOf("") }
     val estTime2 = remember { mutableStateOf("") }
+    var startLocation by remember { mutableStateOf<LatLng?>(null) }
+    var endLocation by remember { mutableStateOf<LatLng?>(null) }
+
     val sheetItems = listOf(
         SheetItem(
             "Itineraries", R.drawable.travel, activitySheetState,
@@ -164,14 +167,24 @@ fun MainScreen(
                             apiKey
                         )
                         val route2 = RouteUtils.getRoute(startPoint, endPoint, apiKey)
-                        val route1Polyline = RouteUtils.decodePolyline(route1.routes[0].overviewPolyLine.encondedPolyline)
+                        val route1Polyline = RouteUtils.decodePolyline(route1.routes[0].polyline.encodedPolyline)
+                        estTime.value = route1.routes[0].legs[0].duration.toString()
+                        estTime2.value = route2.routes[0].legs[0].duration.toString()
+                        startLocation = startPoint
+                        endLocation = endPoint
                     }
                 }
             MapBackground(
                 modifier = Modifier
                     .matchParentSize(),
                 user = user,
-                selectedLocation = selectedLocation
+                selectedLocation = selectedLocation,
+                startPoint = startLocation,
+                endPoint = endLocation,
+                route1Polyline = routeLine.value,
+                route2Polyline = route2Line.value,
+                estTime = estTime.value,
+                estTime2 = estTime2.value
             )
                 Log.d("HomeScreen", "Users location$user")
         }

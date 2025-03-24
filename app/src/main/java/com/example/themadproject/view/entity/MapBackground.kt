@@ -12,19 +12,35 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.background
+import androidx.compose.foundation.content.MediaType.Companion.Text
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Text
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
 import coil.compose.rememberImagePainter
 import com.example.myapplication.model.data.User
 import coil.size.Size
+import com.google.android.gms.maps.model.LatLngBounds
+import com.google.android.gms.maps.model.PolylineOptions
 
 
 @Composable
-fun MapBackground(modifier: Modifier = Modifier, user: User, selectedLocation: LatLng?) {
+fun MapBackground(modifier: Modifier = Modifier, user: User, selectedLocation: LatLng?, startPoint: LatLng?, endPoint: LatLng?, route1Polyline: PolylineOptions?, route2Polyline: PolylineOptions?, estTime: String, estTime2: String) {
     val context = LocalContext.current
     val mapView = remember { mutableStateOf<GoogleMap?>(null) }
     val userLocation = LatLng(user.UserLatitude, user.UserLongitude)
@@ -48,18 +64,50 @@ fun MapBackground(modifier: Modifier = Modifier, user: User, selectedLocation: L
                 mapView.value = googleMap
                 googleMap.addMarker(MarkerOptions().position(userLocation).title("Current Location"))
                 googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 15f))
-
-                /*selectedLocation?.let { newLocation ->
-                    Log.d("MapBackground", "Updating map with selected location: $selectedLocation")
-                    googleMap.clear()
-                    googleMap.addMarker(MarkerOptions().position(newLocation).title("selectedLocation"))
-                    googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(newLocation, 12f))
-                }*/
+                route1Polyline?.let {
+                    googleMap.addPolyline(it)
+                }
+                route2Polyline?.let {
+                    googleMap.addPolyline(it)
+                }
+                startPoint?.let {
+                    googleMap.addMarker(MarkerOptions().position(it).title("Start Point"))
+                }
+                endPoint?.let {
+                    googleMap.addMarker(MarkerOptions().position(it).title("End Point"))
+                }
+                if (startPoint != null && endPoint != null) {
+                    val bounds = LatLngBounds.Builder()
+                        .include(startPoint)
+                        .include(endPoint)
+                        .build()
+                    googleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100))
+                }
             }
             frameLayout
         },
         modifier = modifier.fillMaxSize()
     )
+    Column(
+        modifier = Modifier
+            .padding(16.dp)
+            .background(Color.White.copy(alpha = 0.7f), RoundedCornerShape(8.dp)),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Bottom
+    ) {
+        Text(
+            text = "Estimated Time to Start: $estTime",
+            fontWeight = FontWeight.Bold,
+            fontSize = 16.sp
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = "Estimated Time to end: $estTime2",
+            fontWeight = FontWeight.Bold,
+            fontSize = 16.sp
+        )
+
+    }
     LaunchedEffect(selectedLocation) {
         mapView.value?.let { googleMap ->
             selectedLocation?.let { newLocation ->
