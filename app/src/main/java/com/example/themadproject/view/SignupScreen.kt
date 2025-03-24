@@ -45,9 +45,9 @@ fun SignupScreen(
         remember { mutableStateOf("https://t3.ftcdn.net/jpg/08/05/28/22/360_F_805282248_LHUxw7t2pnQ7x8lFEsS2IZgK8IGFXePS.jpg") }
 
 
-    var verifySignup: (User) -> Unit = {
+    var verifySignup: (User) -> Unit = { newUser ->
         //The StaySafe API error response will take care of all other validations to meet the POST requirements and will send a the issue in a snackBar to the user
-        if (it.UserFirstname.isBlank() || it.UserFirstname.isBlank() || it.UserLastname.isBlank() || it.UserPassword.isBlank() || it.UserPhone.isBlank()) {
+        if (newUser.UserFirstname.isBlank() || newUser.UserFirstname.isBlank() || newUser.UserLastname.isBlank() || newUser.UserPassword.isBlank() || newUser.UserPhone.isBlank()) {
             viewModel.showSnackbar("Please fill in the fields", "Error")
         } else {
 
@@ -55,12 +55,16 @@ fun SignupScreen(
                 if (isExist) {
                     viewModel.showSnackbar("Username already taken", "Error")
                 } else {
-                    viewModel.createUser(it, {
-                        viewModel.findUser(it.UserUsername, { navController.navigate(Screen.MainScreen.route) })
+                    viewModel.createUser(newUser, {
+                        //Sets user once found
+                        viewModel.findUser(newUser.UserUsername, {
+                            navController.navigate(Screen.MainScreen.route)
+                            viewModel.showPatientSnackbar("Welcome ${newUser.UserUsername}!", "Signup Success")
+                        })
                     })
                 }
             }
-            viewModel.findUser(it.UserUsername, onResult = handleResult)
+            viewModel.findUser(newUser.UserUsername, onResult = handleResult)
         }
     }
 
