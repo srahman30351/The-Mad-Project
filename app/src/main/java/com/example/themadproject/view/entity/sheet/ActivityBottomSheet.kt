@@ -26,7 +26,8 @@ import com.example.myapplication.viewmodel.StaySafeViewModel
 @Composable
 fun ActivityBottomSheet(
     onDismiss: () -> Unit,
-    viewModel: StaySafeViewModel
+    viewModel: StaySafeViewModel,
+    onActivitySelected: (Activity) -> Unit
 ){
 
     val activities = viewModel.activities.collectAsState().value
@@ -40,7 +41,10 @@ fun ActivityBottomSheet(
         ) {
             LazyColumn {
                 items(activities) { activity ->
-                    ActivityCard(activity)
+                    ActivityCard(activity = activity, onClick = {
+                        onActivitySelected(activity)
+                        onDismiss()
+                    })
                 }
             }
         }
@@ -48,7 +52,7 @@ fun ActivityBottomSheet(
 }
 
 @Composable
-fun ActivityCard(activity: Activity) {
+fun ActivityCard(activity: Activity, onClick: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -56,7 +60,7 @@ fun ActivityCard(activity: Activity) {
         colors = CardDefaults.cardColors(
             containerColor = Color(0xffA3C9A8)
         ),
-        onClick = { }
+        onClick = onClick
     ) {
         Column (
             modifier = Modifier

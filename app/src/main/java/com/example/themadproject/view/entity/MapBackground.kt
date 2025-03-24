@@ -17,11 +17,19 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
+import coil.compose.rememberAsyncImagePainter
+import coil.compose.rememberImagePainter
+import com.example.myapplication.model.data.User
+import coil.size.Size
+
 
 @Composable
-fun MapBackground(modifier: Modifier = Modifier, selectedLocation: LatLng?) {
+fun MapBackground(modifier: Modifier = Modifier, user: User, selectedLocation: LatLng?) {
     val context = LocalContext.current
     val mapView = remember { mutableStateOf<GoogleMap?>(null) }
+    val userLocation = LatLng(user.UserLatitude, user.UserLongitude)
+
+    Log.d("MapBackground", "current location: $userLocation")
     Log.d("MapBackground", "MapBackground composable is running")
     Log.d("MapBackground", "Received selectedLocation: $selectedLocation")
     AndroidView(
@@ -38,16 +46,15 @@ fun MapBackground(modifier: Modifier = Modifier, selectedLocation: LatLng?) {
 
             mapFragment.getMapAsync { googleMap ->
                 mapView.value = googleMap
-                val sydney = LatLng(-34.0, 151.0)
-                googleMap.addMarker(MarkerOptions().position(sydney).title("Marker in Sydney"))
-                googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(sydney, 10f))
+                googleMap.addMarker(MarkerOptions().position(userLocation).title("Current Location"))
+                googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 15f))
 
-                selectedLocation?.let { newLocation ->
+                /*selectedLocation?.let { newLocation ->
                     Log.d("MapBackground", "Updating map with selected location: $selectedLocation")
                     googleMap.clear()
                     googleMap.addMarker(MarkerOptions().position(newLocation).title("selectedLocation"))
                     googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(newLocation, 12f))
-                }
+                }*/
             }
             frameLayout
         },
@@ -59,7 +66,7 @@ fun MapBackground(modifier: Modifier = Modifier, selectedLocation: LatLng?) {
                 Log.d("MapBackground", "updating map with selected location from LaunchedEffect: $newLocation")
                 googleMap.clear()
                 googleMap.addMarker(MarkerOptions().position(newLocation).title("Selected location"))
-                googleMap.animateCamera((CameraUpdateFactory.newLatLngZoom(newLocation, 12f)))
+                googleMap.animateCamera((CameraUpdateFactory.newLatLngZoom(newLocation, 15f)))
             }
         }
     }
