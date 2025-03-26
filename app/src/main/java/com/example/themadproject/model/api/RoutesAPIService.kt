@@ -9,7 +9,7 @@ import retrofit2.http.POST
 import retrofit2.http.Query
 
 interface RoutesAPIService {
-    @POST("routes/v2:computeRoutes")
+    @POST("directions/v2:computeRoutes")
     suspend fun getRoute(
         @Body requestBody: RouteRequest,
         @Query("key") apiKey: String

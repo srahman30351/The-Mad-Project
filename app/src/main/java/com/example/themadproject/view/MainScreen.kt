@@ -32,6 +32,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
+import coil.network.HttpException
 import com.example.myapplication.model.data.Activity
 import com.example.myapplication.model.data.User
 import com.example.myapplication.view.navigation.MapBackground
@@ -155,23 +156,52 @@ fun MainScreen(
                         locationName = activity.ActivityFromName ?: "Your Location"
                     ) ?: LatLng(user.UserLatitude, user.UserLongitude)
 
-                    val endPoint = getCords(
-                        context = LocalContext.current,
-                        locationName = activity.ActivityFromName ?: "Flexiable"
-                    ) ?: LatLng(user.UserLatitude, user.UserLongitude)
+                    Log.d("MainScreen", "Start Point: $startPoint")
+
+                    val endPoint = if(activity.ActivityFromName == activity.ActivityToName) {
+                        Log.d("MainScreen", "Start and End Locations are the same so adjusting")
+                        LatLng(user.UserLatitude + 0.001, user.UserLongitude + 0.001)
+                    } else{
+                        getCords(
+                            context = LocalContext.current,
+                            locationName = activity.ActivityToName ?: "Flexible"
+                        ) ?: LatLng(user.UserLatitude, user.UserLongitude)
+                    }
+                    Log.d("MainScreen", "End Point: $endPoint")
+                    if (startPoint == endPoint) {
+                        Log.e("MainScreen", "Start and end locations are the same")
+                        return@let
+                    }
                     val apiKey = "AIzaSyBpRd8pMrcC34T4riIish0azmEmyu8QreQ"
                     LaunchedEffect(key1 = selectedActivity) {
-                        val route1 = RouteUtils.getRoute(
-                            LatLng(user.UserLatitude, user.UserLongitude),
-                            startPoint,
-                            apiKey
-                        )
-                        val route2 = RouteUtils.getRoute(startPoint, endPoint, apiKey)
-                        val route1Polyline = RouteUtils.decodePolyline(route1.routes[0].polyline.encodedPolyline)
-                        estTime.value = route1.routes[0].legs[0].duration.toString()
-                        estTime2.value = route2.routes[0].legs[0].duration.toString()
-                        startLocation = startPoint
-                        endLocation = endPoint
+                        val requestUrl =
+                            "https://routes.googleapis.com/v2:computeRoutes?origin=${startPoint.latitude},${startPoint.longitude}&destination=${endPoint.latitude},${endPoint.longitude}&key=$apiKey"
+                        Log.d("MainScreen", "Requesting route URL: $requestUrl")
+                        try {
+                            val route1 = RouteUtils.getRoute(
+                                LatLng(user.UserLatitude, user.UserLongitude),
+                                startPoint,
+                                apiKey
+                            )
+                            Log.d("MainScreen", "Route 1 Response: ${route1}")
+                            val route2 = RouteUtils.getRoute(startPoint, endPoint, apiKey)
+                            Log.d("MainScreen", "Route 2 Response: ${route2}")
+                            val firstRoute1 = route1.routes.firstOrNull()
+                            val firstRoute2 = route2.routes.firstOrNull()
+
+                            val duration1 = firstRoute1?.duration?.removeSuffix("s")?.toIntOrNull() ?: 0
+                            val duration2 = firstRoute2?.duration?.removeSuffix("s")?.toIntOrNull() ?: 0
+                            estTime.value = duration1.toString()
+                            estTime2.value = duration2.toString()
+                            //val route1Polyline = RouteUtils.decodePolyline(firstRoute1.polyline.encodedPolyline)
+
+                            startLocation = startPoint
+                            endLocation = endPoint
+                        } catch (e: HttpException) {
+                            Log.e("MainScreen", "HTTP error while fetching route: ${e.message}")
+                        } catch (e: Exception) {
+                            Log.e("MainScreen", "General error while fetching route: ${e.message}")
+                        }
                     }
                 }
             MapBackground(

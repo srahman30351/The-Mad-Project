@@ -38,8 +38,8 @@ fun LoginScreen(
     navController: NavController,
     viewModel: StaySafeViewModel
 ) {
-    var username = remember { mutableStateOf("FreedomFighter222") }
-    var password = remember { mutableStateOf("123123123") }
+    var username = remember { mutableStateOf("Kaival1212") }
+    var password = remember { mutableStateOf("password") }
     var showPassword by remember { mutableStateOf(false) }
 
     Scaffold(

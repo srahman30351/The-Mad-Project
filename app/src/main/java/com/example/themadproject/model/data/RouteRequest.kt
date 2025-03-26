@@ -1,6 +1,6 @@
 package com.example.themadproject.model.data
 
-
+import com.example.myapplication.model.data.Location
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Polyline
 import com.google.android.libraries.places.api.model.EncodedPolyline
@@ -11,21 +11,29 @@ import com.google.android.libraries.places.api.model.RoutingParameters.TravelMod
 
 
 data class RouteRequest(
-    val origin: Location,
-    val destination: Location,
-    val travelMode: String = "WALKING",
-    val routingPreference: String = "TRAFFIC_AWARE",
-    val computeAlernativeRoutes: Boolean = false
+    val origin: LocationWrapper,
+    val destination: LocationWrapper,
+    val travelMode: String = "WALK",
+    val routingPreference: String? = null,
+    val computeAlternativeRoutes: Boolean = false
 )
-data class Location(
-    val latLng: LatLng
+data class LocationWrapper(
+    val location: LatLngWrapper
+)
+data class LatLngWrapper(
+    val latLng: LatLngCords
+)
+data class LatLngCords(
+    val latitude: Double,
+    val longitude: Double
 )
 data class RouteResponse(
     val routes: List<Route>
 )
 data class Route(
     val polyline: OverviewPolyline,
-    val legs: List<Leg>
+    val legs: List<Leg>?,
+    val duration: String? = legs?.firstOrNull()?.duration?.toString()
 )
 data class OverviewPolyline(
     val encodedPolyline: String
