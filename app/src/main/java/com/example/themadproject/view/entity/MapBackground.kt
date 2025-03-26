@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,26 +38,20 @@ import coil.compose.rememberAsyncImagePainter
 import coil.compose.rememberImagePainter
 import com.example.myapplication.model.data.User
 import coil.size.Size
+import com.example.myapplication.viewmodel.StaySafeViewModel
 import com.google.android.gms.maps.model.LatLngBounds
 import com.google.android.gms.maps.model.PolylineOptions
 
 
 @Composable
-fun MapBackground(modifier: Modifier = Modifier, user: User, selectedLocation: LatLng?, startPoint: LatLng?, endPoint: LatLng?, route1Polyline: PolylineOptions?, route2Polyline: PolylineOptions?, estTime: String, estTime2: String) {
+fun MapBackground(modifier: Modifier = Modifier, user: User, selectedLocation: LatLng?, startPoint: LatLng?, endPoint: LatLng?, route1Polyline: PolylineOptions?, route2Polyline: PolylineOptions?, estTime: String, estTime2: String, friendsList: List<User>) {
     val context = LocalContext.current
     val mapView = remember { mutableStateOf<GoogleMap?>(null) }
     val userLocation = LatLng(user.UserLatitude, user.UserLongitude)
     val currentEstTime by rememberUpdatedState(estTime)
     val currentEstTime2 by rememberUpdatedState(estTime2)
+    println(friendsList.size)
 
-
-
-    Log.d("MapBackground", "current location: $userLocation")
-    Log.d("MapBackground", "MapBackground composable is running")
-    Log.d("MapBackground", "Received selectedLocation: $selectedLocation")
-    LaunchedEffect(estTime, estTime2) {
-        Log.d("MapBackground", "EstTime: $estTime, Estime2: $estTime2")
-    }
     AndroidView(
         factory = { context ->
             val mapFragment = SupportMapFragment.newInstance()
@@ -88,6 +83,14 @@ fun MapBackground(modifier: Modifier = Modifier, user: User, selectedLocation: L
                 endPoint?.let {
                     googleMap.addMarker(MarkerOptions().position(it).title("End Point"))
                 }
+                Log.d("MapBackground", "friendsList size: ${friendsList.size}")
+                friendsList.forEach { friend ->
+                    val friendsLocation = LatLng(friend.UserLatitude, friend.UserLongitude)
+                    Log.d("MapBackground", "users cords $friendsLocation")
+                    googleMap.addMarker(
+                        MarkerOptions().position(friendsLocation).title(friend.UserUsername)
+                    )
+                }
                 if (startPoint != null && endPoint != null) {
                     val bounds = LatLngBounds.Builder()
                         .include(startPoint)
@@ -95,6 +98,7 @@ fun MapBackground(modifier: Modifier = Modifier, user: User, selectedLocation: L
                         .build()
                     googleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100))
                 }
+
             }
             frameLayout
         },

@@ -72,6 +72,7 @@ val estTime = remember { mutableStateOf<Long>(0L) }
     val estTime2 = remember { mutableStateOf<Long>(0L) }
     var startLocation by remember { mutableStateOf<LatLng?>(null) }
     var endLocation by remember { mutableStateOf<LatLng?>(null) }
+    val users = viewModel.users.collectAsState().value
 
     val sheetItems = listOf(
         SheetItem(
@@ -83,7 +84,7 @@ val estTime = remember { mutableStateOf<Long>(0L) }
                 settingsSheetState = false
             }),
         SheetItem(
-            "Crew", R.drawable.friends, friendSheetState,
+            "Friends", R.drawable.friends, friendSheetState,
             onShow = {
                 friendSheetState = true
                 activitySheetState = false
@@ -192,6 +193,7 @@ val estTime = remember { mutableStateOf<Long>(0L) }
                             val firstRoute1 = route1.routes.firstOrNull()
                             val firstRoute2 = route2.routes.firstOrNull()
 
+
                             val duration1 = firstRoute1?.duration?.removeSuffix("s")?.toIntOrNull()?.toLong() ?: 0L
                             val duration2 = firstRoute2?.duration?.removeSuffix("s")?.toIntOrNull()?.toLong() ?: 0L
                             estTime.value = duration1
@@ -217,6 +219,7 @@ val estTime = remember { mutableStateOf<Long>(0L) }
                 Log.d("MapBackground", "Route2 polyline: ${route2Line.value?.points}")
                 Log.d("EstTime", "Estime is: ${formatDuration(estTime.value)}")
                 Log.d("EstTime", "Estime2 is: ${formatDuration(estTime2.value)}")
+                Log.d("MainScreen", "friendsList size: ${users.size}")
 
 
                 MapBackground(
@@ -229,7 +232,8 @@ val estTime = remember { mutableStateOf<Long>(0L) }
                 route1Polyline = routeLine.value,
                 route2Polyline = route2Line.value,
                 estTime = "${estTime.value / 60}",
-                estTime2 = "${estTime2.value/60}"
+                estTime2 = "${estTime2.value/60}",
+                friendsList = users
             )
                 Log.d("HomeScreen", "Users location$user")
         }
