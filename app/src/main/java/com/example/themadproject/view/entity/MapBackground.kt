@@ -23,8 +23,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -44,10 +46,17 @@ fun MapBackground(modifier: Modifier = Modifier, user: User, selectedLocation: L
     val context = LocalContext.current
     val mapView = remember { mutableStateOf<GoogleMap?>(null) }
     val userLocation = LatLng(user.UserLatitude, user.UserLongitude)
+    val currentEstTime by rememberUpdatedState(estTime)
+    val currentEstTime2 by rememberUpdatedState(estTime2)
+
+
 
     Log.d("MapBackground", "current location: $userLocation")
     Log.d("MapBackground", "MapBackground composable is running")
     Log.d("MapBackground", "Received selectedLocation: $selectedLocation")
+    LaunchedEffect(estTime, estTime2) {
+        Log.d("MapBackground", "EstTime: $estTime, Estime2: $estTime2")
+    }
     AndroidView(
         factory = { context ->
             val mapFragment = SupportMapFragment.newInstance()
@@ -98,14 +107,15 @@ fun MapBackground(modifier: Modifier = Modifier, user: User, selectedLocation: L
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Bottom
     ) {
+        Spacer(modifier = Modifier.height(50.dp))
         Text(
-            text = "Estimated Time to Start: $estTime",
+            text = "Estimated Time to Start: $currentEstTime minutes",
             fontWeight = FontWeight.Bold,
             fontSize = 16.sp
         )
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(10.dp))
         Text(
-            text = "Estimated Time to end: $estTime2",
+            text = "Estimated Time to end: $currentEstTime2 minutes",
             fontWeight = FontWeight.Bold,
             fontSize = 16.sp
         )

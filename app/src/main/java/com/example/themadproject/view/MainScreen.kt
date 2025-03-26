@@ -49,6 +49,7 @@ import com.example.themadproject.view.entity.sheet.ProfileBottomSheet
 import com.example.themadproject.view.entity.sheet.SettingsBottomSheet
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.PolylineOptions
+import okhttp3.internal.concurrent.formatDuration
 import java.util.Locale
 
 @Composable
@@ -67,8 +68,8 @@ fun MainScreen(
     var selectedActivity by remember { mutableStateOf<Activity?>(null) }
     val routeLine = remember { mutableStateOf<PolylineOptions?>(null) }
     val route2Line = remember { mutableStateOf<PolylineOptions?>(null) }
-    val estTime = remember { mutableStateOf("") }
-    val estTime2 = remember { mutableStateOf("") }
+val estTime = remember { mutableStateOf<Long>(0L) }
+    val estTime2 = remember { mutableStateOf<Long>(0L) }
     var startLocation by remember { mutableStateOf<LatLng?>(null) }
     var endLocation by remember { mutableStateOf<LatLng?>(null) }
 
@@ -191,10 +192,10 @@ fun MainScreen(
                             val firstRoute1 = route1.routes.firstOrNull()
                             val firstRoute2 = route2.routes.firstOrNull()
 
-                            val duration1 = firstRoute1?.duration?.removeSuffix("s")?.toIntOrNull() ?: 0
-                            val duration2 = firstRoute2?.duration?.removeSuffix("s")?.toIntOrNull() ?: 0
-                            estTime.value = duration1.toString()
-                            estTime2.value = duration2.toString()
+                            val duration1 = firstRoute1?.duration?.removeSuffix("s")?.toIntOrNull()?.toLong() ?: 0L
+                            val duration2 = firstRoute2?.duration?.removeSuffix("s")?.toIntOrNull()?.toLong() ?: 0L
+                            estTime.value = duration1
+                            estTime2.value = duration2
                             //val route1Polyline = RouteUtils.decodePolyline(firstRoute1.polyline.encodedPolyline)
                             routeLine.value = firstRoute1?.polyline?.encodedPolyline?.let { encoded ->
                                 PolylineOptions().addAll(RouteUtils.decodePolyline(encoded)).color(Color.Blue.toArgb()).width(8f)
@@ -214,6 +215,9 @@ fun MainScreen(
                 }
                 Log.d("MapBackground", "Route1 polyline: ${routeLine.value?.points}")
                 Log.d("MapBackground", "Route2 polyline: ${route2Line.value?.points}")
+                Log.d("EstTime", "Estime is: ${formatDuration(estTime.value)}")
+                Log.d("EstTime", "Estime2 is: ${formatDuration(estTime2.value)}")
+
 
                 MapBackground(
                 modifier = Modifier
@@ -224,8 +228,8 @@ fun MainScreen(
                 endPoint = endLocation,
                 route1Polyline = routeLine.value,
                 route2Polyline = route2Line.value,
-                estTime = estTime.value,
-                estTime2 = estTime2.value
+                estTime = "${estTime.value / 60}",
+                estTime2 = "${estTime2.value/60}"
             )
                 Log.d("HomeScreen", "Users location$user")
         }
