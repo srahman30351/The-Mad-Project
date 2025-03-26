@@ -27,6 +27,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -194,6 +196,12 @@ fun MainScreen(
                             estTime.value = duration1.toString()
                             estTime2.value = duration2.toString()
                             //val route1Polyline = RouteUtils.decodePolyline(firstRoute1.polyline.encodedPolyline)
+                            routeLine.value = firstRoute1?.polyline?.encodedPolyline?.let { encoded ->
+                                PolylineOptions().addAll(RouteUtils.decodePolyline(encoded)).color(Color.Blue.toArgb()).width(8f)
+                            }
+                            route2Line.value = firstRoute2?.polyline?.encodedPolyline?.let { encoded ->
+                                PolylineOptions().addAll(RouteUtils.decodePolyline(encoded)).color(Color.Red.toArgb()).width(8f)
+                            }
 
                             startLocation = startPoint
                             endLocation = endPoint
@@ -204,7 +212,10 @@ fun MainScreen(
                         }
                     }
                 }
-            MapBackground(
+                Log.d("MapBackground", "Route1 polyline: ${routeLine.value?.points}")
+                Log.d("MapBackground", "Route2 polyline: ${route2Line.value?.points}")
+
+                MapBackground(
                 modifier = Modifier
                     .matchParentSize(),
                 user = user,

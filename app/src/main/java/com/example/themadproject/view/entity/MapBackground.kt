@@ -62,6 +62,9 @@ fun MapBackground(modifier: Modifier = Modifier, user: User, selectedLocation: L
 
             mapFragment.getMapAsync { googleMap ->
                 mapView.value = googleMap
+                googleMap.uiSettings.isZoomControlsEnabled = true
+                googleMap.uiSettings.isZoomGesturesEnabled = true
+                googleMap.uiSettings.isScrollGesturesEnabled = true
                 googleMap.addMarker(MarkerOptions().position(userLocation).title("Current Location"))
                 googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 15f))
                 route1Polyline?.let {
@@ -108,13 +111,28 @@ fun MapBackground(modifier: Modifier = Modifier, user: User, selectedLocation: L
         )
 
     }
-    LaunchedEffect(selectedLocation) {
+    LaunchedEffect(startPoint, endPoint, route1Polyline, route2Polyline) {
         mapView.value?.let { googleMap ->
-            selectedLocation?.let { newLocation ->
-                Log.d("MapBackground", "updating map with selected location from LaunchedEffect: $newLocation")
-                googleMap.clear()
-                googleMap.addMarker(MarkerOptions().position(newLocation).title("Selected location"))
-                googleMap.animateCamera((CameraUpdateFactory.newLatLngZoom(newLocation, 15f)))
+            googleMap.clear()
+            googleMap.addMarker(MarkerOptions().position(userLocation).title("Current Location"))
+            startPoint?.let {
+                googleMap.addMarker(MarkerOptions().position(it).title("Start Point"))
+            }
+            endPoint?.let {
+                googleMap.addMarker(MarkerOptions().position(it).title("End Point"))
+            }
+            route1Polyline?.let {
+                googleMap.addPolyline(it)
+            }
+            route2Polyline?.let {
+                googleMap.addPolyline(it)
+            }
+            if (startPoint != null && endPoint != null) {
+                val bounds = LatLngBounds.Builder()
+                    .include(startPoint)
+                    .include(endPoint)
+                    .build()
+                googleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100))
             }
         }
     }
