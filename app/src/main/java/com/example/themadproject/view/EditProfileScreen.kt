@@ -72,7 +72,7 @@ fun EditProfileScreen(
                     } else {
                         viewModel.editUser(newUser, {
                             viewModel.setUser(newUser)
-                            navController.navigate(Screen.MainScreen.route)
+                            navController.navigate(Screen.HomeScreen.route)
                         })
                     }
                 }
@@ -99,7 +99,7 @@ fun EditProfileScreen(
             topBar = {
                 TopAppBar(title = { Text("Edit profile") },
                     navigationIcon = {
-                        IconButton(onClick = { navController.navigate(Screen.MainScreen.route) }
+                        IconButton(onClick = { navController.navigate(Screen.HomeScreen.route) }
                         ) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,

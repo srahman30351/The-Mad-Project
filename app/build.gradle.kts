@@ -48,6 +48,10 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.ui)
+    implementation(libs.androidx.ui.graphics)
+    implementation(libs.androidx.ui.tooling)
+    implementation(libs.androidx.ui.tooling.preview)
 
     //Maps API
     implementation(libs.play.services.maps)

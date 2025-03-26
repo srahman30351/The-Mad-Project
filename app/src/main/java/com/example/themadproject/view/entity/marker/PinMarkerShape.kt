@@ -1,4 +1,4 @@
-package com.example.themadproject.view.entity.PinMarker
+package com.example.themadproject.view.entity.marker
 
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size

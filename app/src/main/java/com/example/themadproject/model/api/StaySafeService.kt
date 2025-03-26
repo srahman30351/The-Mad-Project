@@ -48,4 +48,9 @@ interface StaySafeService {
 
     @DELETE("users/{id}")
     suspend fun deleteUser(@Path("id") id: Int): Response<ResponseBody>
+
+    @GET("activities/users/{id}")
+    suspend fun getActivitiesByUserID(@Path("id") id : Int): Response<List<Activity>>
+
+
 }

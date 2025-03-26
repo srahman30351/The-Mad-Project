@@ -58,7 +58,7 @@ fun SignupScreen(
                     viewModel.createUser(newUser, {
                         //Sets user once found
                         viewModel.findUser(newUser.UserUsername, {
-                            navController.navigate(Screen.MainScreen.route)
+                            navController.navigate(Screen.HomeScreen.route)
                             viewModel.showPatientSnackbar("Welcome ${newUser.UserUsername}!", "Signup Success")
                         })
                     })

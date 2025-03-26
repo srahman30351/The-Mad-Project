@@ -20,7 +20,6 @@ import androidx.compose.ui.platform.LocalContext
 
 @Composable
 fun MapBackground(modifier: Modifier = Modifier, selectedLocation: LatLng?) {
-    val context = LocalContext.current
     val mapView = remember { mutableStateOf<GoogleMap?>(null) }
     Log.d("MapBackground", "MapBackground composable is running")
     Log.d("MapBackground", "Received selectedLocation: $selectedLocation")

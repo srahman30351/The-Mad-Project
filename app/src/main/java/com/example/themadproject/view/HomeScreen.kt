@@ -37,7 +37,7 @@ import com.example.themadproject.view.entity.sheet.SettingsBottomSheet
 import com.google.android.gms.maps.model.LatLng
 
 @Composable
-fun MainScreen(
+fun HomeScreen(
     navController: NavController,
     viewModel: StaySafeViewModel
 ) {
@@ -49,7 +49,15 @@ fun MainScreen(
     var settingsSheetState by remember { mutableStateOf(false) }
     val sheetItems = listOf(
         SheetItem(
-            "Itineraries", R.drawable.travel, activitySheetState,
+            "My Profile", R.drawable.account, profileSheetState,
+            onShow = {
+                profileSheetState = true
+                activitySheetState = false
+                friendSheetState = false
+                settingsSheetState = false
+            }),
+        SheetItem(
+            "My Activities", R.drawable.travel, activitySheetState,
             onShow = {
                 activitySheetState = true
                 friendSheetState = false
@@ -57,19 +65,11 @@ fun MainScreen(
                 settingsSheetState = false
             }),
         SheetItem(
-            "Crew", R.drawable.friends, friendSheetState,
+            "Friends", R.drawable.contacts, friendSheetState,
             onShow = {
                 friendSheetState = true
                 activitySheetState = false
                 profileSheetState = false
-                settingsSheetState = false
-            }),
-        SheetItem(
-            "My Profile", R.drawable.account, profileSheetState,
-            onShow = {
-                profileSheetState = true
-                activitySheetState = false
-                friendSheetState = false
                 settingsSheetState = false
             }),
         SheetItem(
@@ -104,7 +104,7 @@ fun MainScreen(
             }
         }
     ) { innerPadding ->
-        if (activitySheetState) ActivityBottomSheet({ activitySheetState = false }, viewModel)
+        if (activitySheetState) ActivityBottomSheet({ activitySheetState = false }, viewModel, navController)
         if (friendSheetState) FriendBottomSheet({ friendSheetState = false }, viewModel)
         if (profileSheetState) ProfileBottomSheet(
             { profileSheetState = false },
@@ -130,7 +130,7 @@ fun MainScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Spacer(modifier = Modifier.height(16.dp))
-                PlaceSearchBar { place ->
+                PlaceSearchBar { place, query ->
                     selectedLocation = place
                     Log.d("HomeScreen", "Selected location: $selectedLocation")
                 }

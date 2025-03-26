@@ -49,8 +49,11 @@ class StaySafeViewModel : ViewModel() {
 
     fun loadContent() = viewModelScope.launch {
         getLocations()
-        getUsers()
         getActivities()
+        getUsers()
+        _user.value?.let { user ->
+            getActivitiesByUserID(user.UserID)
+        }
     }
 
     fun setUser(user: User?) = viewModelScope.launch {
@@ -143,6 +146,13 @@ class StaySafeViewModel : ViewModel() {
 
     private fun getActivities() = viewModelScope.launch {
         _activities.value = StaySafeClient.api.getActivities()
+    }
+
+    private fun getActivitiesByUserID(userID: Int) = viewModelScope.launch {
+        val response = StaySafeClient.api.getActivitiesByUserID(userID)
+        if (response.isSuccessful()) {
+            _activities.value = response.body() ?: emptyList()
+        }
     }
 
     private fun getPositions() = viewModelScope.launch {
