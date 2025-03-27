@@ -5,13 +5,17 @@ import android.content.Context
 import android.location.Address
 import android.location.Geocoder
 import android.util.Log
+import android.widget.Space
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -74,6 +78,15 @@ fun MainScreen(
     val users = viewModel.users.collectAsState().value
     var selectedFriend by remember { mutableStateOf<User?>(null) }
     var profileState by remember { mutableStateOf(false) }
+    var isActivityStarted by remember { mutableStateOf(false) }
+    var isActivityPaused by remember { mutableStateOf(false)  }
+    var isActivityCompleted by remember { mutableStateOf(false) }
+
+    val activityButtonState = if (isActivityStarted) {
+        if (isActivityPaused) "Resume" else "Pause"
+    } else {
+        "Start"
+    }
 
     val sheetItems = listOf(
         SheetItem(
@@ -160,7 +173,7 @@ fun MainScreen(
                     viewModel = viewModel,
                     navController = navController,
                     user = showUser,
-                    isCurrentUser = selectedFriend?.UserID == currentUser?.UserID
+                    isCurrentUser = selectedFriend?.UserID != currentUser?.UserID
                 )
             } else {
                 Log.e("MainScreen", "Error: showUser is NULL, cannot open ProfileBottomSheet")
@@ -230,8 +243,6 @@ fun MainScreen(
                         }
                     }
                 }
-
-
                 MapBackground(
                 modifier = Modifier
                     .matchParentSize(),
@@ -267,6 +278,38 @@ fun MainScreen(
                     selectedLocation = place
                 }
 
+            }
+            Column (
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .padding(16.dp)
+            ) {
+                if (isActivityStarted)
+                {
+                    Row(
+                        horizontalArrangement = Arrangement.Center,
+                    ){
+                        Button(onClick = { isActivityPaused = !isActivityPaused }) {
+                            Text(if (isActivityPaused) "Resume" else "Pause")
+                        }
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Button(onClick = { isActivityCompleted = true }) {
+                            Text("Complete")
+                        }
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Button(onClick = {
+                             isActivityStarted = false
+                            isActivityCompleted = false
+                            isActivityPaused = false
+                        }) {
+                            Text("Stop")
+                        }
+                    }
+                } else {
+                    Button(onClick = { isActivityStarted = true }) {
+                        Text("Start Activity")
+                    }
+                }
             }
         }
     }

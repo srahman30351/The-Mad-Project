@@ -1,6 +1,9 @@
 package com.example.myapplication.view.navigation
 
 import android.annotation.SuppressLint
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.drawable.BitmapDrawable
 import android.util.Log
 import android.view.View
 import android.widget.FrameLayout
@@ -14,6 +17,7 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.background
+import androidx.compose.foundation.content.MediaType.Companion.Image
 import androidx.compose.foundation.content.MediaType.Companion.Text
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -28,22 +32,34 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Canvas
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.Coil
+import coil.ImageLoader
 import coil.compose.rememberAsyncImagePainter
 import coil.compose.rememberImagePainter
+import coil.imageLoader
+import coil.request.ImageRequest
+import coil.request.SuccessResult
 import com.example.myapplication.model.data.User
 import coil.size.Size
 import com.example.myapplication.viewmodel.StaySafeViewModel
+import com.example.themadproject.view.entity.marker.PinIconMarker
 import com.example.themadproject.view.entity.sheet.ProfileBottomSheet
+import com.google.android.gms.maps.model.BitmapDescriptor
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLngBounds
 import com.google.android.gms.maps.model.PolylineOptions
+import kotlinx.coroutines.launch
 
 
 @SuppressLint("PotentialBehaviorOverride")
@@ -66,8 +82,7 @@ fun MapBackground(
     val userLocation = LatLng(user.UserLatitude, user.UserLongitude)
     val currentEstTime by rememberUpdatedState(estTime)
     val currentEstTime2 by rememberUpdatedState(estTime2)
-
-    println(friendsList.size)
+    val coroutineScope = rememberCoroutineScope()
 
     AndroidView(
         factory = { context ->
@@ -102,26 +117,15 @@ fun MapBackground(
                 }
                 friendsList.forEach { friend ->
                     val friendsLocation = LatLng(friend.UserLatitude, friend.UserLongitude)
-                    val marker = googleMap.addMarker(
-                        MarkerOptions().position(friendsLocation).title(friend.UserUsername)
-                    )
-                    marker?.tag = friend
-                }
-                googleMap.setOnMarkerClickListener { marker ->
-                    Log.d("MapBackground", "Clicked marker title: ${marker.title}")
-                    val clicked = friendsList.find { it.UserUsername == marker.title }
-                    if (clicked != null) {
-                        if (selectedFriend != clicked || !profileState) {
-                            Log.d("MapBackground", "Opening profile for: ${clicked.UserUsername}")
-                            onProfileSheetChange(true, clicked)
-                            Log.d("MainScreen", "Profile sheet opened for: ${clicked.UserUsername}")
-                        } else {
-                            Log.d("MapBackground", "Ignoring duplicate click for: ${clicked.UserUsername}")
+                    coroutineScope.launch {
+                        val icons = bitmapFormat(context, friend.UserImageURL)
+                        icons?.let {
+                            googleMap.addMarker(
+                                MarkerOptions().position(friendsLocation).title(friend.UserUsername).icon(BitmapDescriptorFactory.fromBitmap(it))
+                            )
                         }
-                    } else {
-                        Log.e("MapBackground", "No friend found for marker title: ${marker.title}")
+                        //marker?.tag = friend
                     }
-                    true
                 }
                 if (startPoint != null && endPoint != null) {
                     val bounds = LatLngBounds.Builder()
@@ -182,5 +186,30 @@ fun MapBackground(
             }
         }
     }
+}
+
+suspend fun bitmapFormat(context: Context, url: String): Bitmap? {
+    val imageLoader = ImageLoader(context)
+
+        val request = ImageRequest.Builder(context)
+            .data(url)
+            .size(100, 100)
+            .target{ drawable ->
+                if (drawable is BitmapDrawable) {
+                    val bitmap = drawable.bitmap
+                }
+            }
+            .build()
+        val result = imageLoader.execute(request)
+       return if (result is SuccessResult) {
+           val drawable = result.drawable
+           if (drawable is BitmapDrawable){
+               drawable.bitmap
+           } else {
+               null
+           }
+       } else  {
+           null
+       }
 }
 

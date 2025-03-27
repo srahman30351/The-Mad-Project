@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 
 @Composable
+
 fun PinIconMarker(url: String) {
     Box(
         modifier = Modifier.size(100.dp).background(
