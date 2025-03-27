@@ -19,6 +19,7 @@ import com.example.themadproject.model.api.StaySafe
 import com.example.themadproject.model.api.imgbbClient
 import com.example.themadproject.model.data.Contact
 import com.example.themadproject.model.data.ErrorMessage
+import com.example.themadproject.model.tracking.LocationService
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
@@ -59,6 +60,7 @@ class StaySafeViewModel : ViewModel() {
     val user: StateFlow<User?> get() = _user
 
     init {
+        LocationService.ACTION_STOP
         getData(StaySafe.User)
     }
 
@@ -118,7 +120,7 @@ class StaySafeViewModel : ViewModel() {
                 ContactUserID = profile.UserID,
                 ContactContactID = userID,
                 ContactLabel = "Friend Request",
-                ContactDateCreated = "2024-09-28T00:00:00.000Z",
+                ContactDatecreated = "2024-09-28T00:00:00.000Z",
             )
             val response = StaySafeClient.api.postData(StaySafe.Contact.type, friendContact)
             if (response.isSuccessful) {

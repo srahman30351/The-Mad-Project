@@ -4,6 +4,6 @@ data class Contact (
     val ContactUserID: Int,
     val ContactContactID: Int,
     val ContactLabel: String,
-    val ContactDateCreated: String,
+    val ContactDatecreated: String,
     val ContactID: Int = 1
 )
