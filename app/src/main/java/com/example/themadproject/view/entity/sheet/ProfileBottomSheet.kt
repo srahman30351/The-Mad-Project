@@ -92,9 +92,7 @@ fun ProfileCard(profile: User) {
             .padding(vertical = 8.dp, horizontal = 8.dp),
         colors = CardDefaults.cardColors(
             containerColor = Color(0xffA3C9A8)
-        ),
-        onClick = { }
-    ) {
+        )) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()

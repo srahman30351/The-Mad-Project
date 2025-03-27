@@ -20,9 +20,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.content.MediaType.Companion.Image
 import androidx.compose.foundation.content.MediaType.Companion.Text
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -199,18 +201,18 @@ fun MapBackground(
     )
     if (isActivityStarted) {
         Column(
-            modifier = Modifier
-                .padding(16.dp)
-                .background(Color.White.copy(alpha = 0.7f), RoundedCornerShape(8.dp)),
+            modifier = Modifier.padding(16.dp).fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Bottom
         ) {
-            Spacer(modifier = Modifier.height(50.dp))
-            Text(
-                text = "Estimated Time of arrival: $currentEstTime minutes",
-                fontWeight = FontWeight.Bold,
-                fontSize = 16.sp
-            )
+            Spacer(modifier = Modifier.height(64.dp))
+            Box(modifier = Modifier.background(Color.White.copy(alpha = 0.7f), RoundedCornerShape(8.dp)),) {
+                Text(
+                    text = "Estimated Time of arrival: $currentEstTime minutes",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp
+                )
+            }
         }
     }
     LaunchedEffect(startPoint, endPoint, route1Polyline, route2Polyline) {
