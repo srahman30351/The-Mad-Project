@@ -46,14 +46,12 @@ import com.example.myapplication.viewmodel.StaySafeViewModel
 import com.example.themadproject.view.entity.sheet.SheetItem
 import com.example.themadproject.R
 import com.example.themadproject.model.api.RouteUtils
-import com.example.themadproject.model.api.RouteUtils.getRoute
 import com.example.themadproject.view.entity.sheet.ActivityBottomSheet
 import com.example.themadproject.view.entity.sheet.FriendBottomSheet
 import com.example.themadproject.view.entity.sheet.ProfileBottomSheet
 import com.example.themadproject.view.entity.sheet.SettingsBottomSheet
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.PolylineOptions
-import okhttp3.internal.concurrent.formatDuration
 import java.util.Locale
 
 @Composable
@@ -66,7 +64,7 @@ fun HomeScreen(
     var friendSheetState by remember { mutableStateOf(false) }
     var profileSheetState by remember { mutableStateOf(false) }
     var settingsSheetState by remember { mutableStateOf(false) }
-    val currentUser= viewModel.user.collectAsState().value
+    val currentUser = viewModel.user.collectAsState().value
     val currentActivity = viewModel.activities.collectAsState().value
     var selectedActivity by remember { mutableStateOf<Activity?>(null) }
     val routeLine = remember { mutableStateOf<PolylineOptions?>(null) }
@@ -79,7 +77,7 @@ fun HomeScreen(
     var selectedFriend by remember { mutableStateOf<User?>(null) }
     var profileState by remember { mutableStateOf(false) }
     var isActivityStarted by remember { mutableStateOf(false) }
-    var isActivityPaused by remember { mutableStateOf(false)  }
+    var isActivityPaused by remember { mutableStateOf(false) }
     var isActivityCompleted by remember { mutableStateOf(false) }
 
     val activityButtonState = if (isActivityStarted) {
@@ -111,15 +109,6 @@ fun HomeScreen(
                 friendSheetState = true
                 activitySheetState = false
                 profileSheetState = false
-                settingsSheetState = false
-            }),
-        SheetItem(
-            "My Profile", R.drawable.account, profileSheetState,
-            onShow = {
-                profileSheetState = true
-                selectedFriend = null
-                activitySheetState = false
-                friendSheetState = false
                 settingsSheetState = false
             }),
         SheetItem(
@@ -168,7 +157,10 @@ fun HomeScreen(
         if (friendSheetState) FriendBottomSheet({ friendSheetState = false }, viewModel)
         LaunchedEffect(profileSheetState) {
             if (profileSheetState) {
-                Log.d("MainScreen", "Launching ProfileBottomSheet for: ${selectedFriend?.UserUsername}")
+                Log.d(
+                    "MainScreen",
+                    "Launching ProfileBottomSheet for: ${selectedFriend?.UserUsername}"
+                )
             }
         }
         if (profileSheetState) {
@@ -203,9 +195,9 @@ fun HomeScreen(
                     ) ?: LatLng(user.UserLatitude, user.UserLongitude)
 
 
-                    val endPoint = if(activity.ActivityFromName == activity.ActivityToName) {
+                    val endPoint = if (activity.ActivityFromName == activity.ActivityToName) {
                         LatLng(user.UserLatitude + 0.001, user.UserLongitude + 0.001)
-                    } else{
+                    } else {
                         getCords(
                             context = LocalContext.current,
                             locationName = activity.ActivityToName ?: "Flexible"
@@ -231,17 +223,25 @@ fun HomeScreen(
                             val firstRoute2 = route2.routes.firstOrNull()
 
 
-                            val duration1 = firstRoute1?.duration?.removeSuffix("s")?.toIntOrNull()?.toLong() ?: 0L
-                            val duration2 = firstRoute2?.duration?.removeSuffix("s")?.toIntOrNull()?.toLong() ?: 0L
+                            val duration1 =
+                                firstRoute1?.duration?.removeSuffix("s")?.toIntOrNull()?.toLong()
+                                    ?: 0L
+                            val duration2 =
+                                firstRoute2?.duration?.removeSuffix("s")?.toIntOrNull()?.toLong()
+                                    ?: 0L
                             estTime.value = duration1
                             estTime2.value = duration2
                             //val route1Polyline = RouteUtils.decodePolyline(firstRoute1.polyline.encodedPolyline)
-                            routeLine.value = firstRoute1?.polyline?.encodedPolyline?.let { encoded ->
-                                PolylineOptions().addAll(RouteUtils.decodePolyline(encoded)).color(Color.Blue.toArgb()).width(8f)
-                            }
-                            route2Line.value = firstRoute2?.polyline?.encodedPolyline?.let { encoded ->
-                                PolylineOptions().addAll(RouteUtils.decodePolyline(encoded)).color(Color.Red.toArgb()).width(8f)
-                            }
+                            routeLine.value =
+                                firstRoute1?.polyline?.encodedPolyline?.let { encoded ->
+                                    PolylineOptions().addAll(RouteUtils.decodePolyline(encoded))
+                                        .color(Color.Blue.toArgb()).width(8f)
+                                }
+                            route2Line.value =
+                                firstRoute2?.polyline?.encodedPolyline?.let { encoded ->
+                                    PolylineOptions().addAll(RouteUtils.decodePolyline(encoded))
+                                        .color(Color.Red.toArgb()).width(8f)
+                                }
 
                             startLocation = startPoint
                             endLocation = endPoint
@@ -253,28 +253,31 @@ fun HomeScreen(
                     }
                 }
                 MapBackground(
-                modifier = Modifier
-                    .matchParentSize(),
-                user = user,
-                selectedLocation = selectedLocation,
-                startPoint = startLocation,
-                endPoint = endLocation,
-                route1Polyline = routeLine.value,
-                route2Polyline = route2Line.value,
-                estTime = "${estTime.value / 60}",
-                estTime2 = "${estTime2.value/60}",
-                friendsList = users,
+                    modifier = Modifier
+                        .matchParentSize(),
+                    user = user,
+                    selectedLocation = selectedLocation,
+                    startPoint = startLocation,
+                    endPoint = endLocation,
+                    route1Polyline = routeLine.value,
+                    route2Polyline = route2Line.value,
+                    estTime = "${estTime.value / 60}",
+                    estTime2 = "${estTime2.value / 60}",
+                    friendsList = users,
                     viewModel = viewModel,
                     selectedFriend = selectedFriend,
                     profileState = profileState,
                     onProfileSheetChange = { newState, friend ->
-                        Log.d("MainScreen", "Profile sheet state: $newState, Selected Friend: ${friend.UserUsername}")
+                        Log.d(
+                            "MainScreen",
+                            "Profile sheet state: $newState, Selected Friend: ${friend.UserUsername}"
+                        )
                         profileState = newState
                         selectedFriend = friend
                     }
 
-            )
-        }
+                )
+            }
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -288,16 +291,15 @@ fun HomeScreen(
                 }
 
             }
-            Column (
+            Column(
                 modifier = Modifier
                     .align(Alignment.Center)
                     .padding(16.dp)
             ) {
-                if (isActivityStarted)
-                {
+                if (isActivityStarted) {
                     Row(
                         horizontalArrangement = Arrangement.Center,
-                    ){
+                    ) {
                         Button(onClick = { isActivityPaused = !isActivityPaused }) {
                             Text(if (isActivityPaused) "Resume" else "Pause")
                         }
@@ -307,7 +309,7 @@ fun HomeScreen(
                         }
                         Spacer(modifier = Modifier.width(16.dp))
                         Button(onClick = {
-                             isActivityStarted = false
+                            isActivityStarted = false
                             isActivityCompleted = false
                             isActivityPaused = false
                         }) {
@@ -323,7 +325,8 @@ fun HomeScreen(
         }
     }
 }
-fun getCords(context: Context, locationName: String) : LatLng? {
+
+fun getCords(context: Context, locationName: String): LatLng? {
     val geocoder = Geocoder(context, Locale.getDefault())
     val addresses: MutableList<Address>? = geocoder.getFromLocationName(locationName, 1)
     return if (!addresses.isNullOrEmpty()) {
