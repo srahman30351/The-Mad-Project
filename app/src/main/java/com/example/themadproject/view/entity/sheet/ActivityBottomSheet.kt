@@ -14,10 +14,12 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -93,8 +95,8 @@ fun ActivityBottomSheet(
         }
 
         when (selectedTabIndex) {
-            0 -> ProfileActivityList(navController, onActivitySelected, viewModel)
-            1 -> FriendsActivityList(navController, onActivitySelected, viewModel)
+            0 -> ProfileActivityList(onActivitySelected, viewModel)
+            1 -> FriendsActivityList(onActivitySelected, viewModel)
         }
     }
 }
@@ -102,7 +104,6 @@ fun ActivityBottomSheet(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileActivityList(
-    navController: NavController,
     onActivitySelected: (Activity) -> Unit,
     viewModel: StaySafeViewModel
 ) {
@@ -124,6 +125,7 @@ fun ProfileActivityList(
             if (activities.isNotEmpty()) {
                 items(activities) { activity ->
                     ProfileActivityCard(activity, onActivitySelected)
+                    HorizontalDivider()
                 }
             } else {
                 item { Text("You have no activities") }
@@ -135,7 +137,6 @@ fun ProfileActivityList(
 
 @Composable
 fun FriendsActivityList(
-    navController: NavController,
     onActivitySelected: (Activity) -> Unit,
     viewModel: StaySafeViewModel
 ) {
@@ -154,7 +155,8 @@ fun FriendsActivityList(
         LazyColumn(modifier = Modifier.height(500.dp)) {
             if (activities.isNotEmpty()) {
                 items(activities) { activity ->
-                    FriendActivityCard(activity, onActivitySelected)
+                    FriendActivityCard(activity)
+                    HorizontalDivider()
                 }
             } else {
                 item { Text("There are no friend activities") }
@@ -171,14 +173,15 @@ fun ProfileActivityCard(activity: Activity, onActivitySelected: (Activity) -> Un
             .fillMaxWidth()
             .padding(vertical = 8.dp, horizontal = 8.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xffA3C9A8)
+            containerColor = Color(0xffE5F2C9)
         ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         onClick = { onActivitySelected(activity) }
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 8.dp, horizontal = 12.dp),
+                .padding(16.dp),
         ) {
             Text(
                 text = activity.ActivityName,
@@ -187,30 +190,49 @@ fun ProfileActivityCard(activity: Activity, onActivitySelected: (Activity) -> Un
                 maxLines = 2,
             )
             Text(
-                text = "${activity.ActivityFromName} to",
+                text = "Destination: ${activity.ActivityFromName} to ${activity.ActivityToName}",
+                fontWeight = FontWeight.Medium,
                 overflow = TextOverflow.Ellipsis,
-                maxLines = 2,
+                maxLines = 3,
             )
-            Text(
-                text = activity.ActivityToName ?: "",
-                overflow = TextOverflow.Ellipsis,
-                maxLines = 2
-            )
-            Text(text = activity.ActivityStatusName ?: "")
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Status: ${activity.ActivityStatusName}",
+                    fontWeight = FontWeight.Light
+                )
+
+                AssistChip(
+                    modifier = Modifier.padding(horizontal = 12.dp),
+                    onClick = { onActivitySelected(activity) },
+                    label = { Text("Start Activity") },
+                    leadingIcon = {
+                        Icon(
+                            painter = painterResource(R.drawable.start),
+                            contentDescription = "Start",
+                        )
+                    }
+                )
+            }
         }
     }
 }
 
 @Composable
-fun FriendActivityCard(activity: Activity, onActivitySelected: (Activity) -> Unit) {
+fun FriendActivityCard(activity: Activity) {
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp, horizontal = 8.dp),
         colors = CardDefaults.cardColors(
             containerColor = Color(0xffBBC2E2)
-        ),
-        onClick = { onActivitySelected(activity) }
+        )
     ) {
         Text(
             modifier = Modifier.padding(8.dp),

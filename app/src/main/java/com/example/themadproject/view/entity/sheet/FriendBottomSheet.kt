@@ -41,9 +41,8 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.myapplication.model.data.User
 import com.example.themadproject.R
+import com.example.themadproject.model.StaySafe
 import com.example.themadproject.view.Screen
-import com.google.android.material.chip.Chip
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -54,6 +53,14 @@ fun FriendBottomSheet(
 ) {
     val contactUsers = viewModel.contactUsers.collectAsState().value
     val sheetState = rememberModalBottomSheetState()
+
+    var handleRemoveFriend: (Int) -> Unit = { contactID ->
+        viewModel.deleteData(StaySafe.Contact, contactID) {
+            onDismiss()
+            viewModel.showSnackbar("Friend removed", "Action")
+            viewModel.loadUserContent()
+        }
+    }
 
     ModalBottomSheet(
         modifier = Modifier.navigationBarsPadding(),
@@ -69,7 +76,7 @@ fun FriendBottomSheet(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically)
         ) {
-            FriendList(contactUsers, navController)
+            FriendList(contactUsers, handleRemoveFriend, navController)
         }
     }
 }
@@ -78,6 +85,7 @@ fun FriendBottomSheet(
 @Composable
 fun FriendList(
     contactUsers: List<User>,
+    onRemoveFriend: (Int) -> Unit,
     navController: NavController
 ) {
     TopAppBar(
@@ -101,7 +109,7 @@ fun FriendList(
     ) {
         if (contactUsers.isNotEmpty()) {
             items(contactUsers) { friend ->
-                FriendCard(friend)
+                FriendCard(friend, onRemoveFriend)
                 HorizontalDivider()
             }
         } else {
@@ -111,7 +119,7 @@ fun FriendList(
 }
 
 @Composable
-fun FriendCard(friend: User) {
+fun FriendCard(friend: User, onRemoveFriend: (Int) -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -127,7 +135,7 @@ fun FriendCard(friend: User) {
                 .padding(vertical = 8.dp, horizontal = 12.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Card(Modifier.size(85.dp)) {
+            Card(Modifier.size(105.dp)) {
                 AsyncImage(
                     model = friend.UserImageURL,
                     modifier = Modifier
@@ -141,12 +149,23 @@ fun FriendCard(friend: User) {
                     .fillMaxWidth()
                     .padding(vertical = 8.dp, horizontal = 12.dp),
             ) {
-                Text(
-                    text = friend.UserUsername,
-                    fontWeight = FontWeight.Black,
-                    overflow = TextOverflow.Ellipsis,
-                    maxLines = 2,
-                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = friend.UserUsername,
+                        fontWeight = FontWeight.Black,
+                        overflow = TextOverflow.Ellipsis,
+                        maxLines = 1,
+                    )
+                    IconButton(onClick = { onRemoveFriend(friend.UserContactID) }) {
+                        Icon( painterResource(R.drawable.remove_friend),
+                            contentDescription = "Unfriend")
+                    }
+                }
                 Text(
                     text = "${friend.UserFirstname} ${friend.UserLastname}",
                     fontWeight = FontWeight.Medium,
