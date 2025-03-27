@@ -2,8 +2,10 @@ package com.example.themadproject.view
 
 import PlaceSearchBar
 import android.content.Context
+import android.content.Intent
 import android.location.Address
 import android.location.Geocoder
+import android.location.LocationManager
 import android.util.Log
 import android.widget.Space
 import androidx.compose.foundation.layout.Arrangement
@@ -24,6 +26,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -47,6 +50,7 @@ import com.example.myapplication.viewmodel.StaySafeViewModel
 import com.example.themadproject.view.entity.sheet.SheetItem
 import com.example.themadproject.R
 import com.example.themadproject.model.api.RouteUtils
+import com.example.themadproject.model.tracking.LocationService
 import com.example.themadproject.view.entity.sheet.ActivityBottomSheet
 import com.example.themadproject.view.entity.sheet.FriendBottomSheet
 import com.example.themadproject.view.entity.sheet.ProfileBottomSheet
@@ -54,12 +58,16 @@ import com.example.themadproject.view.entity.sheet.SettingsBottomSheet
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.PolylineOptions
 import kotlinx.coroutines.delay
+import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.Locale
+import kotlin.reflect.jvm.internal.impl.descriptors.Visibilities.Local
 
 @Composable
 fun HomeScreen(
     navController: NavController,
-    viewModel: StaySafeViewModel
+    viewModel: StaySafeViewModel,
+    locationService: LocationService
 ) {
     viewModel.loadUserContent()
     var selectedLocation by remember { mutableStateOf<LatLng?>(null) }
@@ -87,6 +95,28 @@ fun HomeScreen(
     var currentTimerState by remember { mutableStateOf(false) }
     var pausedTime by remember { mutableStateOf(0L) }
     var clearMarkers by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    val locationService = remember { LocationService() }
+    val locationState = locationService.locationFlow.collectAsState(initial = null)
+    val userLocationState = remember { mutableStateOf<LatLng?>(null) }
+    var userCords by remember { mutableStateOf<LatLng?>(null) }
+    val currentTimeMillis = System.currentTimeMillis()
+    val estimatedArrivalMillis = currentTimeMillis + (estTime2.value * 60 * 1000)
+    val estimatedArrivalTime = SimpleDateFormat ("HH:mm", Locale.getDefault()).format(Date(estimatedArrivalMillis))
+   LaunchedEffect(locationService) {
+       locationService.locationFlow.collect { location ->
+           userLocationState.value = LatLng(location.latitude, location.longitude)
+       }
+   }
+    DisposableEffect(true) {
+        onDispose {
+            context.stopService(
+                Intent(context, LocationService::class.java).apply {
+                    action = LocationService.ACTION_STOP
+                }
+            )
+        }
+    }
 
     val activityButtonState = if (isActivityStarted) {
         if (isActivityPaused) "Resume" else "Pause"
@@ -274,11 +304,12 @@ fun HomeScreen(
                         .matchParentSize(),
                     user = user,
                     selectedLocation = selectedLocation,
+                    userCords = userLocationState.value,
                     startPoint = startLocation,
                     endPoint = endLocation,
                     route1Polyline = routeLine.value,
                     route2Polyline = route2Line.value,
-                    estTime = "${estTime.value / 60}",
+                    estTime = estimatedArrivalTime,
                     estTime2 = "${estTime2.value / 60}",
                     friendsList = users,
                     viewModel = viewModel,
@@ -294,6 +325,15 @@ fun HomeScreen(
                     },
                     clearMarkers = clearMarkers
                 )
+            }
+            fun updateActivityStatus(newStatusID: Int, newStatus: String) {
+                selectedActivity?.let { activity ->
+                    val updateActivity = activity.copy(
+                        ActivityStatusID = newStatusID,
+                        ActivityStatusName = newStatus
+                    )
+                    viewModel.updateActivity(updateActivity)
+                }
             }
 
 
@@ -318,6 +358,8 @@ fun HomeScreen(
                 routeLine.value = null
                 route2Line.value = null
                 selectedActivity = null
+                startTime = System.currentTimeMillis()
+                pausedTime = 0L
             }
             Column(
                 modifier = Modifier
@@ -330,10 +372,13 @@ fun HomeScreen(
                         startTime = System.currentTimeMillis()
                         currentTimerState = true
                         pausedTime = 0L
+                        updateActivityStatus(2, "Started")
                     }) {
                         Text("Start Activity")
                     }
                 }
+
+
                 if (isActivityStarted) {
                     Row(
                         horizontalArrangement = Arrangement.Center,
@@ -343,18 +388,22 @@ fun HomeScreen(
                             isActivityPaused = !isActivityPaused
                             if (isActivityPaused) {
                                 pausedTime = System.currentTimeMillis() - startTime
+                                updateActivityStatus(3, "Paused")
                             } else {
                                 startTime = System.currentTimeMillis() - pausedTime
+                                updateActivityStatus(2, "Started")
                             }
                         }) {
                             Text(if (isActivityPaused) "Resume" else "Pause")
                         }
                         Spacer(modifier = Modifier.width(16.dp))
-                        Button(onClick = { stopActivity() }) {
+                        Button(onClick = { stopActivity()
+                        updateActivityStatus(5, "Completed")}) {
                             Text("Complete")
                         }
                         Spacer(modifier = Modifier.width(16.dp))
-                        Button(onClick = { stopActivity() }) {
+                        Button(onClick = { stopActivity()
+                        updateActivityStatus(4, "Cancelled")}) {
                             Text("Stop")
                         }
                     }

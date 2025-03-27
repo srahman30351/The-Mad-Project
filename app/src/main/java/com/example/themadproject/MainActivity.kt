@@ -10,6 +10,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.myapplication.view.LoginScreen
 import com.example.themadproject.view.Screen
 import com.example.myapplication.viewmodel.StaySafeViewModel
+import com.example.themadproject.model.tracking.LocationService
 import com.example.themadproject.ui.theme.TheMADProjectTheme
 import com.example.themadproject.view.AddActivityScreen
 import com.example.themadproject.view.EditProfileScreen
@@ -29,13 +30,14 @@ class MainActivity : AppCompatActivity() {
             TheMADProjectTheme {
                 val navController = rememberNavController()
                 val viewModel = StaySafeViewModel()
+                val locationService = LocationService()
                 NavHost(
                     navController = navController,
                     startDestination = Screen.LoginScreen.route,
                     builder = {
                         composable(Screen.HomeScreen.route)
                         {
-                            HomeScreen(navController, viewModel)
+                            HomeScreen(navController, viewModel, locationService)
                         }
                         composable(Screen.EditProfile.route)
                         {

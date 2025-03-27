@@ -2,6 +2,7 @@ package com.example.myapplication.viewmodel
 
 import android.content.Context
 import android.net.Uri
+import android.util.Log
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.State
@@ -58,6 +59,8 @@ class StaySafeViewModel : ViewModel() {
 
     private val _user = MutableStateFlow<User?>(null)
     val user: StateFlow<User?> get() = _user
+
+
 
     init {
         LocationService.ACTION_START
@@ -121,6 +124,23 @@ class StaySafeViewModel : ViewModel() {
         if (response.isSuccessful && !activityList.isNullOrEmpty()) {
             onGet(activityList)
         }
+    }
+    fun updateActivity(updatedActivity: Activity) {
+        viewModelScope.launch {
+            Log.d("StaySafe", "activity = $updatedActivity")
+            putData(updatedActivity)
+        }
+            /*
+            try {
+                _userActivities.value = _userActivities.value.map { activity ->
+                    if (activity.ActivityID == updatedActivity.ActivityID) updatedActivity else activity
+                }
+            } catch (e: Exception){
+                Log.e("StaySafeViewModel", "Error updating activity: ${e.message} ")
+            }
+        }
+
+     */
     }
 
     fun postFriendRequest(userID: Int, onPost: (() -> Unit)? = null) = viewModelScope.launch {

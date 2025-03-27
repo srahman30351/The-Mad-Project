@@ -54,6 +54,7 @@ import coil.request.SuccessResult
 import com.example.myapplication.model.data.User
 import coil.size.Size
 import com.example.myapplication.viewmodel.StaySafeViewModel
+import com.example.themadproject.model.data.LatLngCords
 import com.example.themadproject.view.entity.marker.PinIconMarker
 import com.example.themadproject.view.entity.sheet.ProfileBottomSheet
 import com.google.android.gms.maps.model.BitmapDescriptor
@@ -79,24 +80,35 @@ fun MapBackground(
     selectedFriend: User?,
     profileState: Boolean,
     onProfileSheetChange: (Boolean, User) -> Unit,
-    clearMarkers: Boolean) {
+    clearMarkers: Boolean,
+    userCords: LatLng?) {
     val context = LocalContext.current
     val mapView = remember { mutableStateOf<GoogleMap?>(null) }
-    val userLocation = LatLng(user.UserLatitude, user.UserLongitude)
+    val userLocation = userCords ?: LatLng(user.UserLatitude, user.UserLongitude)
     val currentEstTime by rememberUpdatedState(estTime)
     val currentEstTime2 by rememberUpdatedState(estTime2)
     val coroutineScope = rememberCoroutineScope()
     val activityMarkers = remember { mutableStateListOf<Marker>() }
+    val userMarker = remember { mutableStateOf<Marker?>(null) }
+    Log.d("MapBackground", "userCords are: $userCords")
+    LaunchedEffect(userCords) {
+        mapView.value?.apply {
+            userMarker.value?.remove()
+            val icons = bitmapFormat(context, user.UserImageURL)
+            icons?.let {
+                val newMarker =
+                    addMarker(MarkerOptions().position(userLocation).title(user.UserUsername).icon(BitmapDescriptorFactory.fromBitmap(it)))
+                userMarker.value = newMarker
+                animateCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 15f))
+            }
+        }
+    }
+
 
     LaunchedEffect(clearMarkers) {
-        if (clearMarkers) {
-            mapView.value?.apply {
-                activityMarkers.forEach { marker ->
-                    if (marker.title == "Start Point" || marker.title == "End Point") {
-                        marker.remove()
-                    }
-                }
-
+        mapView.value?.apply {
+            if (clearMarkers) {
+                clear()
             }
         }
     }
@@ -153,6 +165,8 @@ fun MapBackground(
                         .build()
                     googleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100))
                 }
+                googleMap.addMarker(MarkerOptions().position(userLocation).title("current location"))
+                googleMap.moveCamera(CameraUpdateFactory.newLatLng(userLocation))
 
             }
             frameLayout

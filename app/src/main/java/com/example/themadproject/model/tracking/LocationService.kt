@@ -3,23 +3,31 @@ package com.example.themadproject.model.tracking
 import android.app.Service
 import android.content.Intent
 import android.os.IBinder
+import com.example.myapplication.model.data.Location
 import com.google.android.gms.location.LocationServices
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
 class LocationService: Service() {
 
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-
     private lateinit var locationClient: LocationClient
+    private val _locationFlow = MutableSharedFlow<Location>(replay = 1)
+    val locationFlow = _locationFlow.asSharedFlow()
 
     override fun onBind(intent: Intent?): IBinder? {
         return null
     }
-
+    data class Location(
+        val latitude: Double,
+        val longitude: Double
+    )
     override fun onCreate() {
         super.onCreate()
         locationClient = DefaultLocationClient(
@@ -39,9 +47,9 @@ class LocationService: Service() {
     private fun start() {
         locationClient.getLocationUpdates(10000L)
             .onEach { location ->
-                val latitude = location.latitude
-                val longitude = location.longitude
+                _locationFlow.emit(location.toCustomLocation())
             }
+            .launchIn(serviceScope)
     }
 
     private fun stop() {
@@ -56,5 +64,8 @@ class LocationService: Service() {
     companion object {
         const val ACTION_START = "ACTION_START"
         const val ACTION_STOP = "ACTION_STOP"
+    }
+    fun android.location.Location.toCustomLocation(): Location {
+        return Location(latitude = this.latitude, longitude = this.latitude)
     }
 }
