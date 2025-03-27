@@ -30,6 +30,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -58,6 +59,7 @@ import com.example.themadproject.view.entity.sheet.ProfileBottomSheet
 import com.google.android.gms.maps.model.BitmapDescriptor
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLngBounds
+import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.PolylineOptions
 import kotlinx.coroutines.launch
 
@@ -76,13 +78,28 @@ fun MapBackground(
     viewModel: StaySafeViewModel,
     selectedFriend: User?,
     profileState: Boolean,
-    onProfileSheetChange: (Boolean, User) -> Unit) {
+    onProfileSheetChange: (Boolean, User) -> Unit,
+    clearMarkers: Boolean) {
     val context = LocalContext.current
     val mapView = remember { mutableStateOf<GoogleMap?>(null) }
     val userLocation = LatLng(user.UserLatitude, user.UserLongitude)
     val currentEstTime by rememberUpdatedState(estTime)
     val currentEstTime2 by rememberUpdatedState(estTime2)
     val coroutineScope = rememberCoroutineScope()
+    val activityMarkers = remember { mutableStateListOf<Marker>() }
+
+    LaunchedEffect(clearMarkers) {
+        if (clearMarkers) {
+            mapView.value?.apply {
+                activityMarkers.forEach { marker ->
+                    if (marker.title == "Start Point" || marker.title == "End Point") {
+                        marker.remove()
+                    }
+                }
+
+            }
+        }
+    }
 
     AndroidView(
         factory = { context ->
@@ -110,10 +127,12 @@ fun MapBackground(
                     googleMap.addPolyline(it)
                 }
                 startPoint?.let {
-                    googleMap.addMarker(MarkerOptions().position(it).title("Start Point"))
+                    val startMarker = googleMap.addMarker(MarkerOptions().position(it).title("Start Point"))
+                    startMarker?.let { marker -> activityMarkers.add(marker) }
                 }
                 endPoint?.let {
-                    googleMap.addMarker(MarkerOptions().position(it).title("End Point"))
+                    val endMarker = googleMap.addMarker(MarkerOptions().position(it).title("End Point"))
+                    endMarker?.let { marker -> activityMarkers.add(marker) }
                 }
                 friendsList.forEach { friend ->
                     val friendsLocation = LatLng(friend.UserLatitude, friend.UserLongitude)

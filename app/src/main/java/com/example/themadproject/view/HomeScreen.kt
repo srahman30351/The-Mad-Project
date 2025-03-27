@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -52,6 +53,7 @@ import com.example.themadproject.view.entity.sheet.ProfileBottomSheet
 import com.example.themadproject.view.entity.sheet.SettingsBottomSheet
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.PolylineOptions
+import kotlinx.coroutines.delay
 import java.util.Locale
 
 @Composable
@@ -79,11 +81,25 @@ fun HomeScreen(
     var isActivityStarted by remember { mutableStateOf(false) }
     var isActivityPaused by remember { mutableStateOf(false) }
     var isActivityCompleted by remember { mutableStateOf(false) }
+    var startTime by remember { mutableStateOf(System.currentTimeMillis()) }
+    var elapsedTime by remember { mutableStateOf(0L) }
+    var currentTimerState by remember { mutableStateOf(false) }
+    var pausedTime by remember { mutableStateOf(0L) }
+    var clearMarkers by remember { mutableStateOf(false) }
 
     val activityButtonState = if (isActivityStarted) {
         if (isActivityPaused) "Resume" else "Pause"
     } else {
         "Start"
+    }
+    LaunchedEffect(currentTimerState) {
+        if (currentTimerState) {
+            val startTimeMillis = startTime - pausedTime
+            while (isActivityStarted && !isActivityPaused) {
+                elapsedTime = System.currentTimeMillis() - startTimeMillis
+                delay(1000)
+            }
+        }
     }
 
     val sheetItems = listOf(
@@ -274,10 +290,12 @@ fun HomeScreen(
                         )
                         profileState = newState
                         selectedFriend = friend
-                    }
-
+                    },
+                    clearMarkers = clearMarkers
                 )
             }
+
+
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -291,40 +309,82 @@ fun HomeScreen(
                 }
 
             }
+            fun stopActivity() {
+                isActivityStarted = false
+                isActivityPaused = false
+                isActivityCompleted = false
+                clearMarkers = true
+                routeLine.value = null
+                route2Line.value = null
+                selectedActivity = null
+            }
             Column(
                 modifier = Modifier
                     .align(Alignment.Center)
                     .padding(16.dp)
             ) {
-                if (isActivityStarted) {
-                    Row(
-                        horizontalArrangement = Arrangement.Center,
-                    ) {
-                        Button(onClick = { isActivityPaused = !isActivityPaused }) {
-                            Text(if (isActivityPaused) "Resume" else "Pause")
-                        }
-                        Spacer(modifier = Modifier.width(16.dp))
-                        Button(onClick = { isActivityCompleted = true }) {
-                            Text("Complete")
-                        }
-                        Spacer(modifier = Modifier.width(16.dp))
-                        Button(onClick = {
-                            isActivityStarted = false
-                            isActivityCompleted = false
-                            isActivityPaused = false
-                        }) {
-                            Text("Stop")
-                        }
-                    }
-                } else {
-                    Button(onClick = { isActivityStarted = true }) {
+                if (!isActivityStarted && selectedActivity != null) {
+                    Button(onClick = {
+                        isActivityStarted = true
+                        startTime = System.currentTimeMillis()
+                        currentTimerState = true
+                        pausedTime = 0L
+                    }) {
                         Text("Start Activity")
                     }
                 }
+                if (isActivityStarted) {
+                    Row(
+                        horizontalArrangement = Arrangement.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Button(onClick = {
+                            isActivityPaused = !isActivityPaused
+                            if (isActivityPaused) {
+                                pausedTime = System.currentTimeMillis() - startTime
+                            } else {
+                                startTime = System.currentTimeMillis() - pausedTime
+                            }
+                        }) {
+                            Text(if (isActivityPaused) "Resume" else "Pause")
+                        }
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Button(onClick = { stopActivity() }) {
+                            Text("Complete")
+                        }
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Button(onClick = { stopActivity() }) {
+                            Text("Stop")
+                        }
+                    }
+                }
+            }
+            Column(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(16.dp)
+            ) {
+                if (isActivityStarted && !isActivityCompleted) {
+                    val elapsedTime2 = if (isActivityPaused) {
+                        pausedTime - startTime
+                    } else {
+                        System.currentTimeMillis() - startTime
+                    }
+                    val minutes = (elapsedTime2 / 1000) / 60
+                    val seconds = (elapsedTime2 / 1000) % 60
+                    Text(text = "Time Elapsed: $minutes:$seconds")
+                }
             }
         }
+
     }
+
 }
+
+
+
+
+
 
 fun getCords(context: Context, locationName: String): LatLng? {
     val geocoder = Geocoder(context, Locale.getDefault())
