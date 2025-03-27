@@ -39,9 +39,6 @@ object RouteUtils {
     private val routesAPIService = retrofit.create(RoutesAPIService::class.java)
 
     suspend fun getRoute(origin: LatLng, destination: LatLng, apiKey: String): RouteResponse {
-        val requestUrl = "https://routes.googleapis.com/v2:computeRoutes?origin=${origin.latitude},${origin.longitude}&destination=${destination.latitude},${destination.longitude}&key=$apiKey"
-        Log.d("getRoute", "Requesting route: $requestUrl")
-
         val requestBody = RouteRequest(
             origin = LocationWrapper(LatLngWrapper(LatLngCords(origin.latitude, origin.longitude))),
             destination = LocationWrapper(LatLngWrapper(LatLngCords(destination.latitude, destination.longitude))),

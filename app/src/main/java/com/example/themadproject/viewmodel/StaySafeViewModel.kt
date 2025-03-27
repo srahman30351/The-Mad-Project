@@ -155,20 +155,8 @@ class StaySafeViewModel : ViewModel() {
     }
     fun updateActivity(updatedActivity: Activity, activityId: Int) {
         viewModelScope.launch {
-            Log.d("StaySafe", "activity = $updatedActivity")
             putData(updatedActivity, activityId)
         }
-            /*
-            try {
-                _userActivities.value = _userActivities.value.map { activity ->
-                    if (activity.ActivityID == updatedActivity.ActivityID) updatedActivity else activity
-                }
-            } catch (e: Exception){
-                Log.e("StaySafeViewModel", "Error updating activity: ${e.message} ")
-            }
-        }
-
-     */
     }
 
     fun postFriendRequest(userID: Int, onPost: (() -> Unit)? = null) = viewModelScope.launch {

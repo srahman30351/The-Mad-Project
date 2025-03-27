@@ -84,7 +84,6 @@ fun HomeScreen(
     var endLocation by remember { mutableStateOf<LatLng?>(null) }
     val users = viewModel.users.collectAsState().value
     var selectedFriend by remember { mutableStateOf<User?>(null) }
-    var profileState by remember { mutableStateOf(false) }
     var isActivityStarted by remember { mutableStateOf(false) }
     var isActivityPaused by remember { mutableStateOf(false) }
     var isActivityCompleted by remember { mutableStateOf(false) }
@@ -243,8 +242,6 @@ fun HomeScreen(
                     }
                     val apiKey = "AIzaSyBpRd8pMrcC34T4riIish0azmEmyu8QreQ"
                     LaunchedEffect(key1 = selectedActivity) {
-                        val requestUrl =
-                            "https://routes.googleapis.com/v2:computeRoutes?origin=${startPoint.latitude},${startPoint.longitude}&destination=${endPoint.latitude},${endPoint.longitude}&key=$apiKey"
                         try {
                             val route1 = RouteUtils.getRoute(
                                 LatLng(user.UserLatitude, user.UserLongitude),
@@ -264,7 +261,6 @@ fun HomeScreen(
                                     ?: 0L
                             estTime.value = duration1
                             estTime2.value = duration2
-                            //val route1Polyline = RouteUtils.decodePolyline(firstRoute1.polyline.encodedPolyline)
                             routeLine.value =
                                 firstRoute1?.polyline?.encodedPolyline?.let { encoded ->
                                     PolylineOptions().addAll(RouteUtils.decodePolyline(encoded))
@@ -296,19 +292,7 @@ fun HomeScreen(
                     route1Polyline = routeLine.value,
                     route2Polyline = route2Line.value,
                     estTime = estimatedArrivalTime,
-                    estTime2 = "${estTime2.value / 60}",
                     friendsList = users,
-                    viewModel = viewModel,
-                    selectedFriend = selectedFriend,
-                    profileState = profileState,
-                    onProfileSheetChange = { newState, friend ->
-                        Log.d(
-                            "MainScreen",
-                            "Profile sheet state: $newState, Selected Friend: ${friend.UserUsername}"
-                        )
-                        profileState = newState
-                        selectedFriend = friend
-                    },
                     clearMarkers = clearMarkers.value,
                     isActivityStarted = isActivityStarted
                 )
