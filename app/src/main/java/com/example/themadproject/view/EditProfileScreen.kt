@@ -70,7 +70,7 @@ fun EditProfileScreen(
                     if (user != null && (newUser.UserUsername.lowercase() != user.UserUsername.lowercase())) {
                         viewModel.showSnackbar("Username already taken", "Error")
                     } else {
-                        viewModel.putData(newUser) {
+                        viewModel.putData(newUser, user!!.UserID) {
                             viewModel.setUser(newUser)
                             navController.navigate(Screen.HomeScreen.route)
                         }

@@ -71,6 +71,7 @@ class StaySafeViewModel : ViewModel() {
         _user.value?.let { user ->
             getActivities(user.UserID) { _userActivities.value = it }
             getFriendsByUserID(user.UserID)
+            _requestUsers.value = emptyList()
             getFriendRequestsByUserID(user.UserID)
         }
     }
@@ -100,11 +101,38 @@ class StaySafeViewModel : ViewModel() {
         }
     }
 
+    fun addFriend(userID: Int, contactID: Int, onAdd: (() -> Unit)? = null) = viewModelScope.launch {
+            _user.value?.let { profile ->
+                val friendContact1 = Contact(
+                    ContactUserID = userID,
+                    ContactContactID = profile.UserID,
+                    ContactLabel = "Friend",
+                    ContactDatecreated = "2024-09-28T00:00:00.000Z",
+                )
+                _user.value?.let { profile ->
+                    val friendContact2 = Contact(
+                        ContactUserID = profile.UserID,
+                        ContactContactID = userID,
+                        ContactLabel = "Friend",
+                        ContactDatecreated = "2024-09-28T00:00:00.000Z",
+                    )
+                    postData(friendContact1) {
+                        postData(friendContact2) {
+                            onAdd?.invoke()
+
+                        }
+                    }
+            }
+        }
+    }
+
     fun getFriendRequestsByUserID(userID: Int) = viewModelScope.launch {
         val response = StaySafeClient.api.getUsers(userID, "Friend Request")
         val userList = response.body()
         if (response.isSuccessful && !userList.isNullOrEmpty()) {
             _requestUsers.value = userList
+        } else {
+            _requestUsers.value = emptyList()
         }
     }
 
@@ -146,13 +174,12 @@ class StaySafeViewModel : ViewModel() {
     fun postFriendRequest(userID: Int, onPost: (() -> Unit)? = null) = viewModelScope.launch {
         _user.value?.let { profile ->
             val friendContact = Contact(
-                ContactUserID = profile.UserID,
-                ContactContactID = userID,
+                ContactUserID = userID,
+                ContactContactID = profile.UserID,
                 ContactLabel = "Friend Request",
                 ContactDatecreated = "2024-09-28T00:00:00.000Z",
             )
-            val response = StaySafeClient.api.postData(StaySafe.Contact.type, friendContact)
-            if (response.isSuccessful) {
+           postData(friendContact) {
                 onPost?.invoke()
             }
         }
@@ -203,6 +230,7 @@ class StaySafeViewModel : ViewModel() {
             is Location -> { StaySafeClient.api.postData(StaySafe.Location.type, data) }
             is Status -> { StaySafeClient.api.postData(StaySafe.Status.type, data) }
             is Position -> { StaySafeClient.api.postData(StaySafe.Position.type, data) }
+            is Contact -> { StaySafeClient.api.postData(StaySafe.Contact.type, data) }
             else -> { throw IllegalArgumentException("Post: Data type not supported") }
         }
         if (response.isSuccessful) {
@@ -214,13 +242,13 @@ class StaySafeViewModel : ViewModel() {
         }
     }
 
-    fun putData(data: Any, onPost: (() -> Unit)? = null) = viewModelScope.launch {
+    fun putData(data: Any, dataID: Int, onPost: (() -> Unit)? = null) = viewModelScope.launch {
         var response = when (data) {
-            is User -> { StaySafeClient.api.postData(StaySafe.User.type, data) }
-            is Activity -> { StaySafeClient.api.postData(StaySafe.Activity.type, data) }
-            is Location -> { StaySafeClient.api.postData(StaySafe.Location.type, data) }
-            is Status -> { StaySafeClient.api.postData(StaySafe.Status.type, data) }
-            is Position -> { StaySafeClient.api.postData(StaySafe.Position.type, data) }
+            is User -> { StaySafeClient.api.putData(StaySafe.User.type, dataID, data) }
+            is Activity -> { StaySafeClient.api.putData(StaySafe.Activity.type, dataID, data) }
+            is Location -> { StaySafeClient.api.putData(StaySafe.Location.type, dataID, data) }
+            is Status -> { StaySafeClient.api.putData(StaySafe.Status.type, dataID, data) }
+            is Position -> { StaySafeClient.api.putData(StaySafe.Position.type, dataID, data) }
             else -> { throw IllegalArgumentException("Post: Data type not supported") }
         }
         if (response.isSuccessful) {

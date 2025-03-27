@@ -5,6 +5,8 @@ import com.example.myapplication.model.data.Location
 import com.example.myapplication.model.data.Position
 import com.example.myapplication.model.data.Status
 import com.example.myapplication.model.data.User
+import com.example.themadproject.model.data.Contact
+import com.google.android.gms.common.api.Api.Client
 import okhttp3.ResponseBody
 import retrofit2.Response
 import retrofit2.http.Body
@@ -34,6 +36,9 @@ interface StaySafeService {
 
     @GET("locations")
     suspend fun getLocations(): Response<List<Location>>
+
+    @GET("contacts/{id}")
+    suspend fun getContactByContactID(@Path("id") contactID: Int): Response<List<Contact>>
 
     @GET("positions")
     suspend fun getPositions(): Response<List<Position>>

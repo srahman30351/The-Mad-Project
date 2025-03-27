@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.myapplication.model.data.User
 import com.example.myapplication.viewmodel.StaySafeViewModel
+import com.example.themadproject.model.StaySafe
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -45,7 +46,23 @@ fun PeopleList(
             viewModel.showSnackbar("Successfully sent a friend request!", "Success")
         }
     }
-    
+
+    val handleAcceptFriendRequest: (Int, Int) -> Unit = { userID, contactID ->
+        println(contactID)
+        viewModel.deleteData(StaySafe.Contact, contactID) {
+            viewModel.addFriend(userID, contactID) {
+                viewModel.showSnackbar("Successfully added a friend!", "Success")
+            }
+        }
+    }
+
+    val handleDenyFriendRequest: (Int) -> Unit = { contactID ->
+        viewModel.deleteData(StaySafe.Contact, contactID)
+        viewModel.showSnackbar("Friend request denied!", "Success")
+    }
+
+
+
     TopAppBar(
         title = { Text("Add Friend") },
         navigationIcon = {
@@ -60,11 +77,11 @@ fun PeopleList(
     LazyColumn(
         modifier = Modifier.height(500.dp)
     ) {
-        items(requests) { user ->
+        items(requests) { request ->
             FriendRequestCard(
-                user,
-                onDeny = {},
-                onAccept = {}
+                request,
+                onDeny = handleDenyFriendRequest,
+                onAccept = handleAcceptFriendRequest
             )
         }
         items(users) { user ->
@@ -74,7 +91,7 @@ fun PeopleList(
 }
 
 @Composable
-fun FriendRequestCard(requester: User, onAccept: () -> Unit, onDeny: () -> Unit) {
+fun FriendRequestCard(requester: User, onAccept: (Int, Int) -> Unit, onDeny: (Int) -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -116,12 +133,14 @@ fun FriendRequestCard(requester: User, onAccept: () -> Unit, onDeny: () -> Unit)
                     overflow = TextOverflow.Ellipsis,
                     maxLines = 2,
                 )
-                TextButton(onClick = onAccept
+                TextButton(onClick = { onAccept(requester.UserID, requester.UserContactID) }
                 ) {
-                    Text(text = "Accept Friend Request",
-                        color = Color.Blue)
+                    Text(
+                        text = "Accept Friend Request",
+                        color = Color.Blue
+                    )
                 }
-                TextButton(onClick = onDeny
+                TextButton(onClick = { onDeny(requester.UserContactID) }
                 ) {
                     Text(
                         text = "Deny Friend Request",
