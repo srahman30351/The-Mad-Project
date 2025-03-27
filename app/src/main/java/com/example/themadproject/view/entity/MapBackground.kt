@@ -53,6 +53,7 @@ import coil.request.ImageRequest
 import coil.request.SuccessResult
 import com.example.myapplication.model.data.User
 import coil.size.Size
+import com.example.myapplication.model.data.Activity
 import com.example.myapplication.viewmodel.StaySafeViewModel
 import com.example.themadproject.model.data.LatLngCords
 import com.example.themadproject.view.entity.marker.PinIconMarker
@@ -81,7 +82,8 @@ fun MapBackground(
     profileState: Boolean,
     onProfileSheetChange: (Boolean, User) -> Unit,
     clearMarkers: Boolean,
-    userCords: LatLng?) {
+    userCords: LatLng?,
+    isActivityStarted: Boolean) {
     val context = LocalContext.current
     val mapView = remember { mutableStateOf<GoogleMap?>(null) }
     val userLocation = userCords ?: LatLng(user.UserLatitude, user.UserLongitude)
@@ -90,6 +92,7 @@ fun MapBackground(
     val coroutineScope = rememberCoroutineScope()
     val activityMarkers = remember { mutableStateListOf<Marker>() }
     val userMarker = remember { mutableStateOf<Marker?>(null) }
+    val clearTheMap = clearMarkers
     Log.d("MapBackground", "userCords are: $userCords")
     LaunchedEffect(userCords) {
         mapView.value?.apply {
@@ -105,10 +108,35 @@ fun MapBackground(
     }
 
 
-    LaunchedEffect(clearMarkers) {
+    LaunchedEffect(clearTheMap) {
         mapView.value?.apply {
             if (clearMarkers) {
-                clear()
+                mapView.value?.let { googleMap ->
+                    googleMap.clear()
+                    val icons1 = bitmapFormat(context, user.UserImageURL)
+                    icons1?.let {
+                        val newMarker =
+                            addMarker(
+                                MarkerOptions().position(userLocation).title(user.UserUsername)
+                                    .icon(BitmapDescriptorFactory.fromBitmap(it))
+                            )
+                        userMarker.value = newMarker
+                        animateCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 15f))
+                    }
+                    friendsList.forEach { friend ->
+                        val friendsLocation = LatLng(friend.UserLatitude, friend.UserLongitude)
+                        coroutineScope.launch {
+                            val icons = bitmapFormat(context, friend.UserImageURL)
+                            icons?.let {
+                                addMarker(
+                                    MarkerOptions().position(friendsLocation)
+                                        .title(friend.UserUsername)
+                                        .icon(BitmapDescriptorFactory.fromBitmap(it))
+                                )
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -130,21 +158,12 @@ fun MapBackground(
                 googleMap.uiSettings.isZoomControlsEnabled = true
                 googleMap.uiSettings.isZoomGesturesEnabled = true
                 googleMap.uiSettings.isScrollGesturesEnabled = true
-                googleMap.addMarker(MarkerOptions().position(userLocation).title("Current Location"))
                 googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 15f))
                 route1Polyline?.let {
                     googleMap.addPolyline(it)
                 }
                 route2Polyline?.let {
                     googleMap.addPolyline(it)
-                }
-                startPoint?.let {
-                    val startMarker = googleMap.addMarker(MarkerOptions().position(it).title("Start Point"))
-                    startMarker?.let { marker -> activityMarkers.add(marker) }
-                }
-                endPoint?.let {
-                    val endMarker = googleMap.addMarker(MarkerOptions().position(it).title("End Point"))
-                    endMarker?.let { marker -> activityMarkers.add(marker) }
                 }
                 friendsList.forEach { friend ->
                     val friendsLocation = LatLng(friend.UserLatitude, friend.UserLongitude)
@@ -155,17 +174,13 @@ fun MapBackground(
                                 MarkerOptions().position(friendsLocation).title(friend.UserUsername).icon(BitmapDescriptorFactory.fromBitmap(it))
                             )
                         }
-                        //marker?.tag = friend
                     }
                 }
                 if (startPoint != null && endPoint != null) {
                     val bounds = LatLngBounds.Builder()
-                        .include(startPoint)
-                        .include(endPoint)
                         .build()
                     googleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100))
                 }
-                googleMap.addMarker(MarkerOptions().position(userLocation).title("current location"))
                 googleMap.moveCamera(CameraUpdateFactory.newLatLng(userLocation))
 
             }
@@ -173,26 +188,21 @@ fun MapBackground(
         },
         modifier = modifier.fillMaxSize()
     )
-    Column(
-        modifier = Modifier
-            .padding(16.dp)
-            .background(Color.White.copy(alpha = 0.7f), RoundedCornerShape(8.dp)),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Bottom
-    ) {
-        Spacer(modifier = Modifier.height(50.dp))
-        Text(
-            text = "Estimated Time to Start: $currentEstTime minutes",
-            fontWeight = FontWeight.Bold,
-            fontSize = 16.sp
-        )
-        Spacer(modifier = Modifier.height(10.dp))
-        Text(
-            text = "Estimated Time to end: $currentEstTime2 minutes",
-            fontWeight = FontWeight.Bold,
-            fontSize = 16.sp
-        )
-
+    if (isActivityStarted) {
+        Column(
+            modifier = Modifier
+                .padding(16.dp)
+                .background(Color.White.copy(alpha = 0.7f), RoundedCornerShape(8.dp)),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Bottom
+        ) {
+            Spacer(modifier = Modifier.height(50.dp))
+            Text(
+                text = "Estimated Time of arrival: $currentEstTime minutes",
+                fontWeight = FontWeight.Bold,
+                fontSize = 16.sp
+            )
+        }
     }
     LaunchedEffect(startPoint, endPoint, route1Polyline, route2Polyline) {
         mapView.value?.let { googleMap ->

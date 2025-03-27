@@ -153,10 +153,10 @@ class StaySafeViewModel : ViewModel() {
             onGet(activityList)
         }
     }
-    fun updateActivity(updatedActivity: Activity) {
+    fun updateActivity(updatedActivity: Activity, activityId: Int) {
         viewModelScope.launch {
             Log.d("StaySafe", "activity = $updatedActivity")
-            putData(updatedActivity)
+            putData(updatedActivity, activityId)
         }
             /*
             try {

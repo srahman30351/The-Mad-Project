@@ -94,7 +94,7 @@ fun HomeScreen(
     var elapsedTime by remember { mutableStateOf(0L) }
     var currentTimerState by remember { mutableStateOf(false) }
     var pausedTime by remember { mutableStateOf(0L) }
-    var clearMarkers by remember { mutableStateOf(false) }
+    val clearMarkers = remember { mutableStateOf(false) }
     val context = LocalContext.current
     val locationService = remember { LocationService() }
     val locationState = locationService.locationFlow.collectAsState(initial = null)
@@ -323,7 +323,8 @@ fun HomeScreen(
                         profileState = newState
                         selectedFriend = friend
                     },
-                    clearMarkers = clearMarkers
+                    clearMarkers = clearMarkers.value,
+                    isActivityStarted = isActivityStarted
                 )
             }
             fun updateActivityStatus(newStatusID: Int, newStatus: String) {
@@ -332,7 +333,7 @@ fun HomeScreen(
                         ActivityStatusID = newStatusID,
                         ActivityStatusName = newStatus
                     )
-                    viewModel.updateActivity(updateActivity)
+                    viewModel.updateActivity(updateActivity, activity.ActivityID)
                 }
             }
 
@@ -354,7 +355,7 @@ fun HomeScreen(
                 isActivityStarted = false
                 isActivityPaused = false
                 isActivityCompleted = false
-                clearMarkers = true
+                clearMarkers.value = clearMarkers.value
                 routeLine.value = null
                 route2Line.value = null
                 selectedActivity = null
@@ -397,12 +398,15 @@ fun HomeScreen(
                             Text(if (isActivityPaused) "Resume" else "Pause")
                         }
                         Spacer(modifier = Modifier.width(16.dp))
-                        Button(onClick = { stopActivity()
-                        updateActivityStatus(5, "Completed")}) {
+                        Button(onClick = {
+                            clearMarkers.value = true
+                        updateActivityStatus(5, "Completed")
+                        stopActivity()}) {
                             Text("Complete")
                         }
                         Spacer(modifier = Modifier.width(16.dp))
                         Button(onClick = { stopActivity()
+                            clearMarkers.value = true
                         updateActivityStatus(4, "Cancelled")}) {
                             Text("Stop")
                         }
