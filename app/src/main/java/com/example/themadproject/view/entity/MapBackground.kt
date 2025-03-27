@@ -70,7 +70,8 @@ import kotlinx.coroutines.launch
 @Composable
 fun MapBackground(
     modifier: Modifier = Modifier,
-    user: User, selectedLocation: LatLng?,
+    user: User,
+    selectedLocation: LatLng?,
     startPoint: LatLng?, endPoint: LatLng?,
     route1Polyline: PolylineOptions?,
     route2Polyline: PolylineOptions?,
@@ -103,6 +104,14 @@ fun MapBackground(
                     addMarker(MarkerOptions().position(userLocation).title(user.UserUsername).icon(BitmapDescriptorFactory.fromBitmap(it)))
                 userMarker.value = newMarker
                 animateCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 15f))
+            }
+        }
+    }
+    LaunchedEffect(selectedLocation) {
+        mapView.value?.apply {
+            selectedLocation?.let { location ->
+                animateCamera(CameraUpdateFactory.newLatLngZoom(location, 15f))
+                addMarker(MarkerOptions().position(location).title("Selected Location"))
             }
         }
     }
