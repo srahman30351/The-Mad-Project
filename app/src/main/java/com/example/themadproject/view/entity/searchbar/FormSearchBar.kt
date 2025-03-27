@@ -1,49 +1,47 @@
 import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SearchBarDefaults.InputField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import com.example.myapplication.model.data.Location
+import com.example.myapplication.viewmodel.StaySafeViewModel
 import com.example.themadproject.view.entity.searchbar.PredictionText
-import com.example.themadproject.view.entity.searchbar.fetchPlace
+import com.example.themadproject.view.entity.searchbar.handleFetchLocation
+import com.example.themadproject.view.entity.searchbar.handleFetchPlace
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.libraries.places.api.Places
 import com.google.android.libraries.places.api.model.AutocompletePrediction
 import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRequest
-import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FormSearchBar(
-    query: MutableState<String>,
-    onPlaceSelected: (LatLng, String) -> Unit,
+    onPlaceSelected: (Location) -> Unit,
     onDismiss: () -> Unit,
-    label: String
+    label: String,
+    viewModel: StaySafeViewModel
 ) {
+    var query by remember { mutableStateOf("") }
     val context = LocalContext.current
     val focusRequester = remember { FocusRequester() }
     var predictions by remember { mutableStateOf<List<AutocompletePrediction>>(emptyList()) }
@@ -53,22 +51,23 @@ fun FormSearchBar(
         focusRequester.requestFocus()
     }
 
-    val onSelect: (LatLng, String) -> Unit = { latLng, text ->
-        onPlaceSelected(latLng, text)
-        query.value = text
-
+    val handleSelect: (Location) -> Unit = { location ->
+        onPlaceSelected(location)
+        query = location.LocationDescription
     }
+
     SearchBar(
         inputField = {
             InputField(
                 modifier = Modifier.focusRequester(focusRequester),
-                query = query.value,
-                onQueryChange = { query.value = it },
+                query = query,
+                onQueryChange = { query = it },
                 onSearch = {
-                    if (predictions.isNotEmpty()) fetchPlace(
+                    if (predictions.isNotEmpty()) handleFetchLocation(
                         predictions.first(),
                         context,
-                        onSelect
+                        handleSelect,
+                        viewModel
                     )
                 },
                 expanded = false,
@@ -83,7 +82,12 @@ fun FormSearchBar(
                             interactionSource = remember { MutableInteractionSource() },
                             onClick = {
                                 if (predictions.isNotEmpty()) {
-                                    fetchPlace(predictions.first(), context, onSelect)
+                                    handleFetchLocation(
+                                        predictions.first(),
+                                        context,
+                                        handleSelect,
+                                        viewModel
+                                    )
                                 }
                             }
                         )
@@ -97,7 +101,7 @@ fun FormSearchBar(
                             indication = null,
                             interactionSource = remember { MutableInteractionSource() },
                             onClick = {
-                                query.value = ""
+                                query = ""
                                 onDismiss()
                             }
                         )
@@ -111,7 +115,7 @@ fun FormSearchBar(
         content = {
             if (predictions.isNotEmpty()) {
                 predictions.forEachIndexed { index, prediction ->
-                    PredictionText(prediction, context, onSelect)
+                    PredictionText(prediction, onClick = { handleFetchLocation(prediction, context, handleSelect, viewModel) })
                     if (index != predictions.lastIndex) {
                         HorizontalDivider(Modifier.padding(horizontal = 16.dp))
                     }
@@ -128,11 +132,11 @@ fun FormSearchBar(
     )
 
     LaunchedEffect(query) {
-        if (query.value.length > 2) {
-            Log.d("SearchBar", "Searching for: $query.value")
+        if (query.length > 2) {
+            Log.d("SearchBar", "Searching for: $query")
             val placesClient = Places.createClient(context)
             val request = FindAutocompletePredictionsRequest.builder()
-                .setQuery(query.value)
+                .setQuery(query)
                 .build()
             placesClient.findAutocompletePredictions(request)
                 .addOnSuccessListener { response ->

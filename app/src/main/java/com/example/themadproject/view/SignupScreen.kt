@@ -51,20 +51,19 @@ fun SignupScreen(
             viewModel.showSnackbar("Please fill in the fields", "Error")
         } else {
 
-            var handleResult: (Boolean) -> Unit = { isExist ->
-                if (isExist) {
+            viewModel.getUserUsername(newUser.UserUsername) { existingUser ->
+                if (existingUser != null) {
                     viewModel.showSnackbar("Username already taken", "Error")
                 } else {
-                    viewModel.createUser(newUser, {
-                        //Sets user once found
-                        viewModel.findUser(newUser.UserUsername, {
+                    viewModel.postData(newUser) {
+                        viewModel.getUserUsername(newUser.UserUsername, { user ->
+                            viewModel.setUser(user) //Sets the user with the correct ID from the API database
                             navController.navigate(Screen.HomeScreen.route)
                             viewModel.showPatientSnackbar("Welcome ${newUser.UserUsername}!", "Signup Success")
                         })
-                    })
+                    }
                 }
             }
-            viewModel.findUser(newUser.UserUsername, onResult = handleResult)
         }
     }
 

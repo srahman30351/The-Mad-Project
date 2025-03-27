@@ -109,7 +109,6 @@ fun ActivityBottomSheet(
 
     @Composable
     fun FriendsActivityList(navController: NavController, viewModel: StaySafeViewModel) {
-        val friends = viewModel.users.collectAsState().value
         val activities = viewModel.activities.collectAsState().value
         Column(
             modifier = Modifier
@@ -124,11 +123,7 @@ fun ActivityBottomSheet(
             )
             LazyColumn(modifier = Modifier.height(500.dp)) {
                 items(activities) { activity ->
-                    val friend = friends.findLast { friend -> friend.UserID == activity.ActivityUserID}
-                    friend?.let{
-                        FriendActivityCard(activity, it)
-                    }
-
+                        FriendActivityCard(activity)
                 }
             }
         }
@@ -167,12 +162,13 @@ fun ProfileActivityCard(activity: Activity) {
                 overflow = TextOverflow.Ellipsis,
                 maxLines = 2
             )
+            Text(text = activity.ActivityStatusName ?: "")
         }
     }
 }
 
 @Composable
-fun FriendActivityCard(activity: Activity, friend: User) {
+fun FriendActivityCard(activity: Activity) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -184,7 +180,7 @@ fun FriendActivityCard(activity: Activity, friend: User) {
     ) {
         Text(
             modifier = Modifier.padding(8.dp),
-            text = friend.UserUsername,
+            text = activity.ActivityUsername ?: "",
             fontWeight = FontWeight.Black,
             overflow = TextOverflow.Ellipsis,
             maxLines = 2,

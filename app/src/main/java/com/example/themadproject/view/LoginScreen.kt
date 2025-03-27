@@ -102,24 +102,21 @@ private fun verifyLogin(
     viewModel: StaySafeViewModel,
     navController: NavController
 ) {
-    if (username.value.isBlank() || password.value.isBlank()) {
-        viewModel.showSnackbar("Please fill in the fields", "Error")
+    if (username.value.isBlank()) {
+        viewModel.showSnackbar("Please fill in the username field", "Error")
         return
     }
-
-    var handleResult: (Boolean) -> Unit = { isExist ->
-        if (!isExist) {
+    viewModel.getUserUsername(username.value) { user ->
+        if (user == null) {
             viewModel.showSnackbar("Account doesn't exist", "Error")
-        } else if (viewModel.user.value?.UserPassword != password.value) {
+        } else if (user.UserPassword != password.value) {
             viewModel.showSnackbar("Password is incorrect", "Error")
-            viewModel.setUser(null)
             password.value = ""
         } else {
+            viewModel.setUser(user)
             viewModel.showSnackbar("Welcome ${username.value}!", "Login Success")
             navController.navigate(Screen.HomeScreen.route)
         }
     }
-
-    viewModel.findUser(username.value, onResult = handleResult)
 }
 

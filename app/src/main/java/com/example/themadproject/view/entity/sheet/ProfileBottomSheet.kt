@@ -64,7 +64,7 @@ fun ProfileBottomSheet(
                     border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
                     onClick = {
                         viewModel.setUser(null)
-                        viewModel.showSnackbar("Successfully signed out","action")
+                        viewModel.showSnackbar("Successfully signed out!","Success")
                         navController.navigate(Screen.LoginScreen.route)
                 }) {
                     Text(text = "Sign Out", color = Color.Red, fontWeight = FontWeight.Bold)

@@ -57,7 +57,7 @@ fun HomeScreen(
                 settingsSheetState = false
             }),
         SheetItem(
-            "My Activities", R.drawable.travel, activitySheetState,
+            "Activities", R.drawable.travel, activitySheetState,
             onShow = {
                 activitySheetState = true
                 friendSheetState = false
@@ -65,7 +65,7 @@ fun HomeScreen(
                 settingsSheetState = false
             }),
         SheetItem(
-            "Friends", R.drawable.contacts, friendSheetState,
+            "My Friends", R.drawable.contacts, friendSheetState,
             onShow = {
                 friendSheetState = true
                 activitySheetState = false
@@ -130,7 +130,7 @@ fun HomeScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Spacer(modifier = Modifier.height(16.dp))
-                PlaceSearchBar { place, query ->
+                PlaceSearchBar(viewModel) { place, query ->
                     selectedLocation = place
                     Log.d("HomeScreen", "Selected location: $selectedLocation")
                 }

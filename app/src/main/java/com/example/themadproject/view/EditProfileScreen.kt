@@ -41,6 +41,7 @@ import androidx.navigation.NavController
 import com.example.myapplication.model.data.User
 import com.example.myapplication.viewmodel.StaySafeViewModel
 import com.example.themadproject.R
+import com.example.themadproject.model.api.StaySafe
 import com.example.themadproject.view.entity.UserForm
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -66,22 +67,21 @@ fun EditProfileScreen(
             if (newUser.UserFirstname.isBlank() || newUser.UserFirstname.isBlank() || newUser.UserLastname.isBlank() || newUser.UserPassword.isBlank() || newUser.UserPhone.isBlank()) {
                 viewModel.showSnackbar("Please fill in the fields", "Error")
             } else {
-                var handleEdit: (Boolean) -> Unit = { isExist ->
-                    if (isExist && (newUser.UserUsername.lowercase() != user.UserUsername.lowercase())) {
+                viewModel.getUserUsername(newUser.UserUsername) { user ->
+                    if (user != null && (newUser.UserUsername.lowercase() != user.UserUsername.lowercase())) {
                         viewModel.showSnackbar("Username already taken", "Error")
                     } else {
-                        viewModel.editUser(newUser, {
+                        viewModel.putData(newUser) {
                             viewModel.setUser(newUser)
                             navController.navigate(Screen.HomeScreen.route)
-                        })
+                        }
                     }
                 }
-                viewModel.findUser(newUser.UserUsername, onResult = handleEdit)
             }
         }
 
         var handleDelete: () -> Unit = {
-            viewModel.deleteUser(user) {
+            viewModel.deleteData(StaySafe.User, user.UserID) {
                 navController.navigate(Screen.LoginScreen.route)
             }
         }

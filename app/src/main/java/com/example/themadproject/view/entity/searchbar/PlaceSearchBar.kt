@@ -1,4 +1,3 @@
-import android.content.Context
 import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -22,8 +21,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import com.example.myapplication.viewmodel.StaySafeViewModel
 import com.example.themadproject.view.entity.searchbar.PredictionText
-import com.example.themadproject.view.entity.searchbar.fetchPlace
+import com.example.themadproject.view.entity.searchbar.handleFetchPlace
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.libraries.places.api.Places
 import com.google.android.libraries.places.api.model.AutocompletePrediction
@@ -31,14 +31,17 @@ import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRe
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PlaceSearchBar(onPlaceSelected: (LatLng, String) -> Unit) {
+fun PlaceSearchBar(
+    viewModel: StaySafeViewModel,
+    onPlaceSelected: (LatLng, String) -> Unit
+) {
     var query by remember { mutableStateOf("") }
     var expanded by remember { mutableStateOf(false) }
     val context = LocalContext.current
     var predictions by remember { mutableStateOf<List<AutocompletePrediction>>(emptyList()) }
     Log.d("SearchBar", "SearchBar composable is running")
 
-    val onSelect: (LatLng, String) -> Unit = { latLng, text ->
+    val handleSelect: (LatLng, String) -> Unit = { latLng, text ->
         onPlaceSelected(latLng, text)
         query = text
         expanded = false
@@ -54,7 +57,7 @@ fun PlaceSearchBar(onPlaceSelected: (LatLng, String) -> Unit) {
                     if (it.isEmpty()) predictions = emptyList()
                     expanded = true
                 },
-                onSearch = { if(predictions.isNotEmpty()) fetchPlace(predictions.first(), context, onSelect) },
+                onSearch = { if(predictions.isNotEmpty()) handleFetchPlace(predictions.first(), context, handleSelect, viewModel) },
                 expanded = false,
                 onExpandedChange = { },
                 placeholder = { Text("Search for places") },
@@ -67,7 +70,7 @@ fun PlaceSearchBar(onPlaceSelected: (LatLng, String) -> Unit) {
                             interactionSource = remember { MutableInteractionSource() },
                             onClick = {
                                 if (!expanded) expanded = true
-                                else if (predictions.isNotEmpty()) fetchPlace(predictions.first(), context, onSelect)
+                                else if (predictions.isNotEmpty()) handleFetchPlace(predictions.first(), context, handleSelect, viewModel)
                             }
                         )
                     )
@@ -94,7 +97,7 @@ fun PlaceSearchBar(onPlaceSelected: (LatLng, String) -> Unit) {
         content = {
             if (predictions.isNotEmpty()) {
                 predictions.forEachIndexed { index, prediction ->
-                    PredictionText(prediction, context, onSelect)
+                    PredictionText( prediction, onClick = { handleFetchPlace(prediction, context, handleSelect, viewModel) })
                     if (index != predictions.lastIndex) {
                         HorizontalDivider(Modifier.padding(horizontal = 16.dp))
                     }

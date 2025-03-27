@@ -2,6 +2,7 @@ package com.example.myapplication.viewmodel
 
 import android.content.Context
 import android.net.Uri
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.State
@@ -14,9 +15,11 @@ import com.example.myapplication.model.data.Location
 import com.example.myapplication.model.data.Position
 import com.example.myapplication.model.data.Status
 import com.example.myapplication.model.data.User
+import com.example.themadproject.model.api.StaySafe
 import com.example.themadproject.model.api.imgbbClient
 import com.example.themadproject.model.data.ErrorMessage
 import com.squareup.moshi.Moshi
+import com.squareup.moshi.Types
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -25,6 +28,7 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.ResponseBody
+import retrofit2.Response
 import java.io.File
 
 class StaySafeViewModel : ViewModel() {
@@ -48,30 +52,97 @@ class StaySafeViewModel : ViewModel() {
     val user: StateFlow<User?> get() = _user
 
     fun loadContent() = viewModelScope.launch {
-        getLocations()
-        getActivities()
-        getUsers()
+        getData(StaySafe.Activity)
+        getData(StaySafe.User)
         _user.value?.let { user ->
-            getActivitiesByUserID(user.UserID)
+            //getActivitiesByUserID(user.UserID)
         }
     }
+
+    //User specific functions -------------------------------------------------------------------
 
     fun setUser(user: User?) = viewModelScope.launch {
         _user.value = user
     }
 
-    fun findUser(username: String, onResult: (Boolean) -> Unit) = viewModelScope.launch {
+    fun getUserUsername(username: String, onGet: ((User?) -> Unit)) = viewModelScope.launch {
         val response = StaySafeClient.api.getUsersByUsername(username)
-        //Since the API does not handle unique usernames, the first user will be picked if there's a duplicate
-        if (response.isSuccessful) _user.value = response.body()?.first()
-        onResult(response.isSuccessful)
+        val userList = response.body()
+        if (response.isSuccessful && !userList.isNullOrEmpty()) {
+            //Grabs the first item from array as its assumed no user has the same username
+            onGet(userList.first())
+        } else {
+            onGet(null)
+        }
     }
 
-    fun deleteUser(user: User, onDelete: () -> Unit) = viewModelScope.launch {
-        val response = StaySafeClient.api.deleteUser(user.UserID)
+    fun postLocation(location: Location, onPost: (Int) -> Unit) = viewModelScope.launch {
+        val response = StaySafeClient.api.postLocation(location)
         if (response.isSuccessful) {
-            onDelete()
-            showSnackbar("Account successfully deleted!", "Success")
+            val location = response.body()?.first()
+            location?.LocationID?.let { locationID ->
+                onPost(locationID)
+            }
+        }
+    }
+
+    fun getActivitiesByUserID(userID: Int, onGet: ((Boolean) -> Unit)? = null) = viewModelScope.launch {
+        val response = StaySafeClient.api.getActivitiesByUserID(userID)
+        val activityList = response.body()
+        if (response.isSuccessful && !activityList.isNullOrEmpty()) {
+            _activities.value = activityList
+        }
+            onGet?.invoke(!activityList.isNullOrEmpty()) //True means it has fetched activities
+    }
+
+    //Generalised StaySafe API call functions ---------------------------------------------------
+
+    fun getData(from: StaySafe, onGet: (() -> Unit)? = null) = viewModelScope.launch {
+        when (from) {
+                is StaySafe.User -> {
+                    StaySafeClient.api.getUsers().body()?.let {
+                        _users.value = it
+                        onGet?.invoke()
+                    }
+                }
+                is StaySafe.Activity -> {
+                    StaySafeClient.api.getActivities().body()?.let {
+                        _activities.value = it
+                        onGet?.invoke()
+                    }
+                }
+                is StaySafe.Location -> {
+                    StaySafeClient.api.getLocations().body()?.let {
+                        _locations.value = it
+                        onGet?.invoke()
+                    }
+                }
+                is StaySafe.Status -> {
+                    StaySafeClient.api.getActivities().body()?.let {
+                        _activities.value = it
+                        onGet?.invoke()
+                    }
+                }
+                is StaySafe.Position -> {
+                    StaySafeClient.api.getPositions().body()?.let {
+                        _positions.value = it
+                        onGet?.invoke()
+                    }
+                }
+            }
+    }
+
+    fun postData(data: Any, onPost: (() -> Unit)? = null) = viewModelScope.launch {
+        var response = when (data) {
+            is User -> { StaySafeClient.api.postData(StaySafe.User.type, data) }
+            is Activity -> { StaySafeClient.api.postData(StaySafe.Activity.type, data) }
+            is Location -> { StaySafeClient.api.postData(StaySafe.Location.type, data) }
+            is Status -> { StaySafeClient.api.postData(StaySafe.Status.type, data) }
+            is Position -> { StaySafeClient.api.postData(StaySafe.Position.type, data) }
+            else -> { throw IllegalArgumentException("Post: Data type not supported") }
+        }
+        if (response.isSuccessful) {
+            onPost?.invoke()
         } else {
             response.errorBody()?.let { errorBody ->
                 getErrorResponse(errorBody)
@@ -79,11 +150,17 @@ class StaySafeViewModel : ViewModel() {
         }
     }
 
-    fun editUser(user: User, onEdit: () -> Unit) = viewModelScope.launch {
-        val response = StaySafeClient.api.editUser(user.UserID, user)
+    fun putData(data: Any, onPost: (() -> Unit)? = null) = viewModelScope.launch {
+        var response = when (data) {
+            is User -> { StaySafeClient.api.postData(StaySafe.User.type, data) }
+            is Activity -> { StaySafeClient.api.postData(StaySafe.Activity.type, data) }
+            is Location -> { StaySafeClient.api.postData(StaySafe.Location.type, data) }
+            is Status -> { StaySafeClient.api.postData(StaySafe.Status.type, data) }
+            is Position -> { StaySafeClient.api.postData(StaySafe.Position.type, data) }
+            else -> { throw IllegalArgumentException("Post: Data type not supported") }
+        }
         if (response.isSuccessful) {
-            onEdit()
-            showSnackbar("Account successfully edited!", "Success")
+            onPost?.invoke()
         } else {
             response.errorBody()?.let { errorBody ->
                 getErrorResponse(errorBody)
@@ -91,11 +168,10 @@ class StaySafeViewModel : ViewModel() {
         }
     }
 
-    fun createUser(user: User, onCreate: () -> Unit) = viewModelScope.launch {
-        val response = StaySafeClient.api.postUser(user)
+    fun deleteData(to: StaySafe, id: Int, onDelete: (() -> Unit)? = null) = viewModelScope.launch {
+        val response = StaySafeClient.api.deleteData(to.type, id)
         if (response.isSuccessful) {
-            onCreate()
-            showSnackbar("Account successfully created!", "Success")
+            onDelete?.invoke()
         } else {
             response.errorBody()?.let { errorBody ->
                 getErrorResponse(errorBody)
@@ -112,10 +188,12 @@ class StaySafeViewModel : ViewModel() {
             .build()
         val adapter = moshi.adapter(ErrorMessage::class.java)
         val errorMessages = adapter.fromJson(errorBody)
-        errorMessages?.message?.forEach {
-            showPatientSnackbar(it, "Error")
+        errorMessages?.message?.forEach { message ->
+            showPatientSnackbar(message, "Error")
         }
     }
+
+    //imgbb API post and fetch response call --------------------------------------------------------------------
 
     fun generateImageUrl(context: Context, imageUri: Uri, onUpload: (String) -> Unit) =
         viewModelScope.launch {
@@ -140,50 +218,25 @@ class StaySafeViewModel : ViewModel() {
             }
         }
 
-    private fun getLocations() = viewModelScope.launch {
-        _locations.value = StaySafeClient.api.getLocations()
-    }
+//Snackbar state --------------------------------------------------------------------------
 
-    private fun getActivities() = viewModelScope.launch {
-        _activities.value = StaySafeClient.api.getActivities()
-    }
+private val _snackbarHostState = mutableStateOf(SnackbarHostState())
+val snackbarHostState: State<SnackbarHostState> get() = _snackbarHostState
 
-    private fun getActivitiesByUserID(userID: Int) = viewModelScope.launch {
-        val response = StaySafeClient.api.getActivitiesByUserID(userID)
-        if (response.isSuccessful()) {
-            _activities.value = response.body() ?: emptyList()
-        }
-    }
+fun showSnackbar(message: String, action: String) = viewModelScope.launch {
+    _snackbarHostState.value.currentSnackbarData?.dismiss()
+    _snackbarHostState.value.showSnackbar(
+        message = message,
+        actionLabel = action,
+        duration = SnackbarDuration.Short
+    )
+}
 
-    private fun getPositions() = viewModelScope.launch {
-        _positions.value = StaySafeClient.api.getPositions()
-    }
-
-    private fun getStatus() = viewModelScope.launch {
-        _status.value = StaySafeClient.api.getStatus()
-    }
-
-    private fun getUsers() = viewModelScope.launch {
-        _users.value = StaySafeClient.api.getUsers()
-    }
-
-    private val _snackbarHostState = mutableStateOf(SnackbarHostState())
-    val snackbarHostState: State<SnackbarHostState> get() = _snackbarHostState
-
-    fun showSnackbar(message: String, action: String) = viewModelScope.launch {
-        _snackbarHostState.value.currentSnackbarData?.dismiss()
-        _snackbarHostState.value.showSnackbar(
-            message = message,
-            actionLabel = action,
-            duration = SnackbarDuration.Short
-        )
-    }
-
-    fun showPatientSnackbar(message: String, action: String) = viewModelScope.launch {
-        _snackbarHostState.value.showSnackbar(
-            message = message,
-            actionLabel = action,
-            duration = SnackbarDuration.Short
-        )
-    }
+fun showPatientSnackbar(message: String, action: String) = viewModelScope.launch {
+    _snackbarHostState.value.showSnackbar(
+        message = message,
+        actionLabel = action,
+        duration = SnackbarDuration.Short
+    )
+}
 }
