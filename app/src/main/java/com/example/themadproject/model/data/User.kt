@@ -10,5 +10,6 @@ data class User(
     val UserLatitude: Double = -34.0,
     val UserLongitude: Double = 151.0,
     val UserTimestamp: Double = 0.0,
+    val UserContactID: Int = 1, //Default is 1 when not being used
     val UserID: Int = 1 //The StaySafe API autoincrement the id
 )
