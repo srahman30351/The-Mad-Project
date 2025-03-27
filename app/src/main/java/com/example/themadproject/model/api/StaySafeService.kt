@@ -5,7 +5,6 @@ import com.example.myapplication.model.data.Location
 import com.example.myapplication.model.data.Position
 import com.example.myapplication.model.data.Status
 import com.example.myapplication.model.data.User
-import com.example.themadproject.model.api.StaySafe
 import okhttp3.ResponseBody
 import retrofit2.Response
 import retrofit2.http.Body
@@ -21,8 +20,8 @@ interface StaySafeService {
     @GET("users")
     suspend fun getUsers(): Response<List<User>>
 
-    @GET("users/contacts/{id}")
-    suspend fun getUsers(@Path("id") userID: Int): Response<List<User>>
+    @GET("users/contacts/{id}?=")
+    suspend fun getUsers(@Path("id") userID: Int, @Query("UserContactLabel") label: String): Response<List<User>>
 
     @GET("users")
     suspend fun getUsersByUsername(@Query("UserUsername") username: String): Response<List<User>>

@@ -56,6 +56,7 @@ fun FriendBottomSheet(
     viewModel: StaySafeViewModel
 ) {
     val contactUsers = viewModel.contactUsers.collectAsState().value
+    val requests = viewModel.requestUsers.collectAsState().value
     val users = viewModel.users.collectAsState().value
 
     var addFriendState by remember { mutableStateOf(false) }
@@ -76,7 +77,7 @@ fun FriendBottomSheet(
             verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically)
         ) {
             if (addFriendState == false) FriendList(contactUsers, { addFriendState = true }, viewModel)
-            else PeopleList(users, { addFriendState = false }, viewModel)
+            else PeopleList(users, requests, { addFriendState = false }, viewModel)
             }
         }
     }

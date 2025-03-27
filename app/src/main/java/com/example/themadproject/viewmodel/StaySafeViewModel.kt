@@ -2,7 +2,6 @@ package com.example.myapplication.viewmodel
 
 import android.content.Context
 import android.net.Uri
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.State
@@ -15,13 +14,12 @@ import com.example.myapplication.model.data.Location
 import com.example.myapplication.model.data.Position
 import com.example.myapplication.model.data.Status
 import com.example.myapplication.model.data.User
-import com.example.themadproject.model.api.StaySafe
+import com.example.themadproject.model.StaySafe
 import com.example.themadproject.model.api.imgbbClient
 import com.example.themadproject.model.data.Contact
 import com.example.themadproject.model.data.ErrorMessage
 import com.example.themadproject.model.tracking.LocationService
 import com.squareup.moshi.Moshi
-import com.squareup.moshi.Types
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -30,7 +28,6 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.ResponseBody
-import retrofit2.Response
 import java.io.File
 
 class StaySafeViewModel : ViewModel() {
@@ -56,18 +53,22 @@ class StaySafeViewModel : ViewModel() {
     private val _contactUsers = MutableStateFlow(emptyList<User>())
     val contactUsers: StateFlow<List<User>> get() = _contactUsers
 
+    private val _requestUsers = MutableStateFlow(emptyList<User>())
+    val requestUsers: StateFlow<List<User>> get() = _requestUsers
+
     private val _user = MutableStateFlow<User?>(null)
     val user: StateFlow<User?> get() = _user
 
     init {
-        LocationService.ACTION_STOP
+        LocationService.ACTION_START
         getData(StaySafe.User)
     }
 
     fun loadUserContent() = viewModelScope.launch {
         _user.value?.let { user ->
             getActivities(user.UserID) { _userActivities.value = it }
-            getUsersByUserID(user.UserID)
+            getFriendsByUserID(user.UserID)
+            getFriendRequestsByUserID(user.UserID)
         }
     }
 
@@ -88,11 +89,19 @@ class StaySafeViewModel : ViewModel() {
         }
     }
 
-    fun getUsersByUserID(userID: Int) = viewModelScope.launch {
-        val response = StaySafeClient.api.getUsers(userID)
+    fun getFriendsByUserID(userID: Int) = viewModelScope.launch {
+        val response = StaySafeClient.api.getUsers(userID, "Friend")
         val userList = response.body()
         if (response.isSuccessful && !userList.isNullOrEmpty()) {
             _contactUsers.value = userList
+        }
+    }
+
+    fun getFriendRequestsByUserID(userID: Int) = viewModelScope.launch {
+        val response = StaySafeClient.api.getUsers(userID, "Friend Request")
+        val userList = response.body()
+        if (response.isSuccessful && !userList.isNullOrEmpty()) {
+            _requestUsers.value = userList
         }
     }
 

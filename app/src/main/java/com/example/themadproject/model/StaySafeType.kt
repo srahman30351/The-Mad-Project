@@ -1,4 +1,4 @@
-package com.example.themadproject.model.api
+package com.example.themadproject.model
 
 sealed class StaySafe(val type: String) {
     object User: StaySafe("users")

@@ -21,6 +21,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -33,14 +34,18 @@ import com.example.myapplication.viewmodel.StaySafeViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PeopleList(users: List<User>, onDismiss: () -> Unit, viewModel: StaySafeViewModel) {
-
-    val handleAddFriendRequest: (userID: Int) -> Unit =  { userID ->
+fun PeopleList(
+    users: List<User>,
+    requests: List<User>,
+    onDismiss: () -> Unit,
+    viewModel: StaySafeViewModel
+) {
+    val handleAddFriendRequest: (userID: Int) -> Unit = { userID ->
         viewModel.postFriendRequest(userID) {
             viewModel.showSnackbar("Successfully sent a friend request!", "Success")
         }
     }
-
+    
     TopAppBar(
         title = { Text("Add Friend") },
         navigationIcon = {
@@ -55,8 +60,75 @@ fun PeopleList(users: List<User>, onDismiss: () -> Unit, viewModel: StaySafeView
     LazyColumn(
         modifier = Modifier.height(500.dp)
     ) {
+        items(requests) { user ->
+            FriendRequestCard(
+                user,
+                onDeny = {},
+                onAccept = {}
+            )
+        }
         items(users) { user ->
             AddFriendCard(user, handleAddFriendRequest)
+        }
+    }
+}
+
+@Composable
+fun FriendRequestCard(requester: User, onAccept: () -> Unit, onDeny: () -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp, horizontal = 8.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xffE28743)
+        ),
+        onClick = { }
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp, horizontal = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Card(Modifier.size(85.dp)) {
+                AsyncImage(
+                    model = requester.UserImageURL,
+                    modifier = Modifier
+                        .aspectRatio(1f / 1f),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop
+                )
+            }
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp, horizontal = 12.dp),
+            ) {
+                Text(
+                    text = "Friend Request: ${requester.UserUsername}",
+                    fontWeight = FontWeight.Black,
+                    overflow = TextOverflow.Ellipsis,
+                    maxLines = 2,
+                )
+                Text(
+                    text = "${requester.UserFirstname} ${requester.UserLastname}",
+                    fontWeight = FontWeight.Medium,
+                    overflow = TextOverflow.Ellipsis,
+                    maxLines = 2,
+                )
+                TextButton(onClick = onAccept
+                ) {
+                    Text(text = "Accept Friend Request",
+                        color = Color.Blue)
+                }
+                TextButton(onClick = onDeny
+                ) {
+                    Text(
+                        text = "Deny Friend Request",
+                        color = Color.Red
+                    )
+                }
+            }
         }
     }
 }

@@ -35,13 +35,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.toLowerCase
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.myapplication.model.data.User
 import com.example.myapplication.viewmodel.StaySafeViewModel
 import com.example.themadproject.R
-import com.example.themadproject.model.api.StaySafe
+import com.example.themadproject.model.StaySafe
 import com.example.themadproject.view.entity.UserForm
 
 @OptIn(ExperimentalMaterial3Api::class)
