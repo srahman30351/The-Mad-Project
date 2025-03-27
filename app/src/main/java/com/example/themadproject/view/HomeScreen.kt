@@ -50,6 +50,7 @@ import com.example.myapplication.viewmodel.StaySafeViewModel
 import com.example.themadproject.view.entity.sheet.SheetItem
 import com.example.themadproject.R
 import com.example.themadproject.model.api.RouteUtils
+import com.example.themadproject.model.notification.TrackerNotificationService
 import com.example.themadproject.model.tracking.LocationService
 import com.example.themadproject.view.entity.sheet.ActivityBottomSheet
 import com.example.themadproject.view.entity.sheet.FriendBottomSheet
@@ -67,6 +68,7 @@ import kotlin.reflect.jvm.internal.impl.descriptors.Visibilities.Local
 fun HomeScreen(
     navController: NavController,
     viewModel: StaySafeViewModel,
+    notificationService: TrackerNotificationService,
     locationService: LocationService
 ) {
     viewModel.loadUserContent()
@@ -101,7 +103,7 @@ fun HomeScreen(
     val currentTimeMillis = System.currentTimeMillis()
     val estimatedArrivalMillis = currentTimeMillis + (estTime2.value * 60 * 1000)
     val estimatedArrivalTime = SimpleDateFormat ("HH:mm", Locale.getDefault()).format(Date(estimatedArrivalMillis))
-   LaunchedEffect(locationService) {
+    LaunchedEffect(locationService) {
        locationService.locationFlow.collect { location ->
            userLocationState.value = LatLng(location.latitude, location.longitude)
        }
@@ -355,6 +357,8 @@ fun HomeScreen(
             ) {
                 if (!isActivityStarted && selectedActivity != null) {
                     Button(onClick = {
+                        notificationService.showNotification("You have completed your activity!")
+
                         isActivityStarted = true
                         startTime = System.currentTimeMillis()
                         currentTimerState = true
@@ -389,6 +393,7 @@ fun HomeScreen(
                         updateActivityStatus(5, "Completed")
                         stopActivity()}) {
                             Text("Complete")
+                            notificationService.showNotification("You have completed your activity!")
                         }
                         Spacer(modifier = Modifier.width(16.dp))
                         Button(onClick = { stopActivity()
