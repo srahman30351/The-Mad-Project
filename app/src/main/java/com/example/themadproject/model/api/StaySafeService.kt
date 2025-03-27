@@ -21,6 +21,9 @@ interface StaySafeService {
     @GET("users")
     suspend fun getUsers(): Response<List<User>>
 
+    @GET("users/contacts/{id}")
+    suspend fun getUsers(@Path("id") userID: Int): Response<List<User>>
+
     @GET("users")
     suspend fun getUsersByUsername(@Query("UserUsername") username: String): Response<List<User>>
 
@@ -28,7 +31,7 @@ interface StaySafeService {
     suspend fun getActivities(): Response<List<Activity>>
 
     @GET("activities/users/{id}")
-    suspend fun getActivitiesByUserID(@Query("id") id: Int): Response<List<Activity>>
+    suspend fun getActivitiesByUserID(@Path("id") userID: Int): Response<List<Activity>>
 
     @GET("locations")
     suspend fun getLocations(): Response<List<Location>>

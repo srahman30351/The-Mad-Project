@@ -59,13 +59,14 @@ fun HomeScreen(
     navController: NavController,
     viewModel: StaySafeViewModel
 ) {
+    viewModel.loadUserContent()
     var selectedLocation by remember { mutableStateOf<LatLng?>(null) }
     var activitySheetState by remember { mutableStateOf(false) }
     var friendSheetState by remember { mutableStateOf(false) }
     var profileSheetState by remember { mutableStateOf(false) }
     var settingsSheetState by remember { mutableStateOf(false) }
     val currentUser = viewModel.user.collectAsState().value
-    val currentActivity = viewModel.activities.collectAsState().value
+    val currentActivity = viewModel.userActivities.collectAsState().value
     var selectedActivity by remember { mutableStateOf<Activity?>(null) }
     val routeLine = remember { mutableStateOf<PolylineOptions?>(null) }
     val route2Line = remember { mutableStateOf<PolylineOptions?>(null) }

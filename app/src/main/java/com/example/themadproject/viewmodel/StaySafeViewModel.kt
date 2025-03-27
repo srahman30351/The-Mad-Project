@@ -17,6 +17,7 @@ import com.example.myapplication.model.data.Status
 import com.example.myapplication.model.data.User
 import com.example.themadproject.model.api.StaySafe
 import com.example.themadproject.model.api.imgbbClient
+import com.example.themadproject.model.data.Contact
 import com.example.themadproject.model.data.ErrorMessage
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types
@@ -33,9 +34,6 @@ import java.io.File
 
 class StaySafeViewModel : ViewModel() {
 
-    private val _activities = MutableStateFlow(emptyList<Activity>())
-    val activities: StateFlow<List<Activity>> get() = _activities
-
     private val _locations = MutableStateFlow(emptyList<Location>())
     val locations: StateFlow<List<Location>> get() = _locations
 
@@ -45,18 +43,30 @@ class StaySafeViewModel : ViewModel() {
     private val _status = MutableStateFlow(emptyList<Status>())
     val status: StateFlow<List<Status>> get() = _status
 
+    private val _userActivities = MutableStateFlow(emptyList<Activity>())
+    val userActivities: StateFlow<List<Activity>> get() = _userActivities
+
+    private val _friendActivities = MutableStateFlow(emptyList<Activity>())
+    val friendActivities: StateFlow<List<Activity>> get() = _friendActivities
+
     private val _users = MutableStateFlow(emptyList<User>())
     val users: StateFlow<List<User>> get() = _users
+
+    private val _contactUsers = MutableStateFlow(emptyList<User>())
+    val contactUsers: StateFlow<List<User>> get() = _contactUsers
 
     private val _user = MutableStateFlow<User?>(null)
     val user: StateFlow<User?> get() = _user
 
     init {
-        getData(StaySafe.Activity)
         getData(StaySafe.User)
-//        _user.value?.let { user ->
-//            getActivitiesByUserID(user.UserID)
-//        }
+    }
+
+    fun loadUserContent() = viewModelScope.launch {
+        _user.value?.let { user ->
+            getActivities(user.UserID) { _userActivities.value = it }
+            getUsersByUserID(user.UserID)
+        }
     }
 
     //User specific functions -------------------------------------------------------------------
@@ -76,6 +86,14 @@ class StaySafeViewModel : ViewModel() {
         }
     }
 
+    fun getUsersByUserID(userID: Int) = viewModelScope.launch {
+        val response = StaySafeClient.api.getUsers(userID)
+        val userList = response.body()
+        if (response.isSuccessful && !userList.isNullOrEmpty()) {
+            _contactUsers.value = userList
+        }
+    }
+
     fun postLocation(location: Location, onPost: (Int) -> Unit) = viewModelScope.launch {
         val response = StaySafeClient.api.postLocation(location)
         if (response.isSuccessful) {
@@ -86,13 +104,27 @@ class StaySafeViewModel : ViewModel() {
         }
     }
 
-    fun getActivitiesByUserID(userID: Int, onGet: ((Boolean) -> Unit)? = null) = viewModelScope.launch {
+    fun getActivities(userID: Int, onGet: (List<Activity>) -> Unit) = viewModelScope.launch {
         val response = StaySafeClient.api.getActivitiesByUserID(userID)
         val activityList = response.body()
         if (response.isSuccessful && !activityList.isNullOrEmpty()) {
-            _activities.value = activityList
+            onGet(activityList)
         }
-            onGet?.invoke(!activityList.isNullOrEmpty()) //True means it has fetched activities
+    }
+
+    fun postFriendRequest(userID: Int, onPost: (() -> Unit)? = null) = viewModelScope.launch {
+        _user.value?.let { profile ->
+            val friendContact = Contact(
+                ContactUserID = profile.UserID,
+                ContactContactID = userID,
+                ContactLabel = "Friend Request",
+                ContactDateCreated = "2024-09-28T00:00:00.000Z",
+            )
+            val response = StaySafeClient.api.postData(StaySafe.Contact.type, friendContact)
+            if (response.isSuccessful) {
+                onPost?.invoke()
+            }
+        }
     }
 
     //Generalised StaySafe API call functions ---------------------------------------------------
@@ -107,7 +139,7 @@ class StaySafeViewModel : ViewModel() {
                 }
                 is StaySafe.Activity -> {
                     StaySafeClient.api.getActivities().body()?.let {
-                        _activities.value = it
+                        _userActivities.value = it
                         onGet?.invoke()
                     }
                 }
@@ -118,8 +150,8 @@ class StaySafeViewModel : ViewModel() {
                     }
                 }
                 is StaySafe.Status -> {
-                    StaySafeClient.api.getActivities().body()?.let {
-                        _activities.value = it
+                    StaySafeClient.api.getStatus().body()?.let {
+                        _status.value = it
                         onGet?.invoke()
                     }
                 }
@@ -129,7 +161,8 @@ class StaySafeViewModel : ViewModel() {
                         onGet?.invoke()
                     }
                 }
-            }
+            else -> { throw IllegalArgumentException("Post: Data type not supported") }
+        }
     }
 
     fun postData(data: Any, onPost: (() -> Unit)? = null) = viewModelScope.launch {

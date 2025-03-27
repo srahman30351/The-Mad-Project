@@ -80,7 +80,7 @@ fun ActivityBottomSheet(
 
         @Composable
         fun ProfileActivityList(navController: NavController, onActivitySelected: (Activity) -> Unit, viewModel: StaySafeViewModel) {
-            val activities = viewModel.activities.collectAsState().value
+            val activities = viewModel.userActivities.collectAsState().value
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -108,9 +108,10 @@ fun ActivityBottomSheet(
         }
 
 
+
     @Composable
     fun FriendsActivityList(navController: NavController, onActivitySelected: (Activity) -> Unit, viewModel: StaySafeViewModel) {
-        val activities = viewModel.activities.collectAsState().value
+        val activities = viewModel.friendActivities.collectAsState().value
         Column(
             modifier = Modifier
                 .fillMaxWidth()
