@@ -1,5 +1,6 @@
 package com.example.themadproject.view.entity.sheet
 
+import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -36,10 +37,13 @@ import com.example.myapplication.viewmodel.StaySafeViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileBottomSheet(
+    user: User,
     onDismiss: () -> Unit,
     viewModel: StaySafeViewModel,
-    navController: NavController
+    navController: NavController,
+    isCurrentUser: Boolean
 ) {
+    Log.d("ProfileBottomSheet", "Rendering profile for: ${user.UserUsername}, isCurrentUser: $isCurrentUser")
     val profile = viewModel.user.collectAsState().value
     if (profile != null) {
         val sheetState = rememberModalBottomSheetState()
@@ -49,7 +53,11 @@ fun ProfileBottomSheet(
             scrimColor = Color.Transparent,
             onDismissRequest = onDismiss
         ) {
-            ProfileCard(profile)
+            ProfileCard(profile = user)
+            Log.d("ProfileBottomSheet", "Showing profile for: ${user.UserUsername}, isCurrentUser: $isCurrentUser")
+            Log.d("ProfileBottomSheet", "Opening profile for: ${user.UserUsername}, isCurrentUser: $isCurrentUser")
+
+            if (isCurrentUser) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(24.dp, Alignment.CenterHorizontally)
@@ -66,9 +74,10 @@ fun ProfileBottomSheet(
                         viewModel.setUser(null)
                         viewModel.showSnackbar("Successfully signed out!","Success")
                         navController.navigate(Screen.LoginScreen.route)
-                }) {
+                    }) {
                     Text(text = "Sign Out", color = Color.Red, fontWeight = FontWeight.Bold)
                 }
+            }
 
             }
         }

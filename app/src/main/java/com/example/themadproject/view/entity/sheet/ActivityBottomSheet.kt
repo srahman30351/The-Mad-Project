@@ -44,7 +44,8 @@ import com.example.themadproject.view.Screen
 fun ActivityBottomSheet(
     onDismiss: () -> Unit,
     viewModel: StaySafeViewModel,
-    navController: NavController
+    navController: NavController,
+    onActivitySelected: (Activity) -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState()
     var selectedTabIndex by remember { mutableStateOf(0) }
@@ -71,14 +72,14 @@ fun ActivityBottomSheet(
         }
 
         when (selectedTabIndex) {
-            0 -> ProfileActivityList(navController, viewModel)
-            1 -> FriendsActivityList(navController, viewModel)
+            0 -> ProfileActivityList(navController, onActivitySelected, viewModel)
+            1 -> FriendsActivityList(navController, onActivitySelected, viewModel)
         }
     }
 }
 
         @Composable
-        fun ProfileActivityList(navController: NavController, viewModel: StaySafeViewModel) {
+        fun ProfileActivityList(navController: NavController, onActivitySelected: (Activity) -> Unit, viewModel: StaySafeViewModel) {
             val activities = viewModel.activities.collectAsState().value
             Column(
                 modifier = Modifier
@@ -87,28 +88,28 @@ fun ActivityBottomSheet(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically)
             ) {
-            }
-            Text(
-                "My Activities",
-                style = MaterialTheme.typography.titleLarge,
-            )
-            Row {
-                Button(onClick = {
-                    navController.navigate(Screen.AddActivity.route)
-                }) {
-                    Text(text = "Create Activity")
+                Text(
+                    "My Activities",
+                    style = MaterialTheme.typography.titleLarge,
+                )
+                Row {
+                    Button(onClick = {
+                        navController.navigate(Screen.AddActivity.route)
+                    }) {
+                        Text(text = "Create Activity")
+                    }
                 }
-            }
-            LazyColumn(modifier = Modifier.height(500.dp)) {
-                items(activities) { activity ->
-                    ProfileActivityCard(activity)
+                LazyColumn(modifier = Modifier.height(500.dp)) {
+                    items(activities) { activity ->
+                        ProfileActivityCard(activity, onActivitySelected)
+                    }
                 }
             }
         }
 
 
     @Composable
-    fun FriendsActivityList(navController: NavController, viewModel: StaySafeViewModel) {
+    fun FriendsActivityList(navController: NavController, onActivitySelected: (Activity) -> Unit, viewModel: StaySafeViewModel) {
         val activities = viewModel.activities.collectAsState().value
         Column(
             modifier = Modifier
@@ -123,7 +124,7 @@ fun ActivityBottomSheet(
             )
             LazyColumn(modifier = Modifier.height(500.dp)) {
                 items(activities) { activity ->
-                        FriendActivityCard(activity)
+                        FriendActivityCard(activity, onActivitySelected)
                 }
             }
         }
@@ -131,7 +132,7 @@ fun ActivityBottomSheet(
 
 
 @Composable
-fun ProfileActivityCard(activity: Activity) {
+fun ProfileActivityCard(activity: Activity, onActivitySelected: (Activity) -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -139,7 +140,7 @@ fun ProfileActivityCard(activity: Activity) {
         colors = CardDefaults.cardColors(
             containerColor = Color(0xffA3C9A8)
         ),
-        onClick = { }
+        onClick = { onActivitySelected(activity) }
     ) {
         Column(
             modifier = Modifier
@@ -168,7 +169,7 @@ fun ProfileActivityCard(activity: Activity) {
 }
 
 @Composable
-fun FriendActivityCard(activity: Activity) {
+fun FriendActivityCard(activity: Activity, onActivitySelected: (Activity) -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -176,7 +177,7 @@ fun FriendActivityCard(activity: Activity) {
         colors = CardDefaults.cardColors(
             containerColor = Color(0xffBBC2E2)
         ),
-        onClick = { }
+        onClick = { onActivitySelected(activity) }
     ) {
         Text(
             modifier = Modifier.padding(8.dp),

@@ -87,4 +87,9 @@ dependencies {
     implementation("androidx.compose.foundation:foundation:1.5.1")
     implementation("androidx.compose.ui:ui:1.5.1")
     implementation("com.google.accompanist:accompanist-permissions:0.37.2")
+    implementation("io.coil-kt:coil-compose:2.0.0")
+    implementation("com.google.maps.android:android-maps-utils:2.2.3")
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation("com.squareup.okhttp3:okhttp:4.9.1")
 }

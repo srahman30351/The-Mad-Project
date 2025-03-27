@@ -47,7 +47,6 @@ fun PlaceSearchBar(
         expanded = false
 
     }
-
     DockedSearchBar(
         inputField = {
             InputField(
