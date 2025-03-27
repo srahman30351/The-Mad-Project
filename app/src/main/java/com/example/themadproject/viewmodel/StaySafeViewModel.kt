@@ -47,7 +47,7 @@ class StaySafeViewModel : ViewModel() {
     private val _user = MutableStateFlow<User?>(null)
     val user: StateFlow<User?> get() = _user
 
-    fun loadContent() = viewModelScope.launch {
+    init {
         getLocations()
         getUsers()
         getActivities()

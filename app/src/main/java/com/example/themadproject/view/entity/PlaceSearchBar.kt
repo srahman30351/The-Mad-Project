@@ -44,7 +44,6 @@ fun PlaceSearchBar(onPlaceSelected: (LatLng) -> Unit) {
         expanded = false
 
     }
-
     DockedSearchBar(
         inputField = {
             InputField(

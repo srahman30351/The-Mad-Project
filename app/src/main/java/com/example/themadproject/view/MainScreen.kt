@@ -57,22 +57,23 @@ fun MainScreen(
     navController: NavController,
     viewModel: StaySafeViewModel
 ) {
-    viewModel.loadContent() //Loads all content needed once screen is composed
     var selectedLocation by remember { mutableStateOf<LatLng?>(null) }
     var activitySheetState by remember { mutableStateOf(false) }
     var friendSheetState by remember { mutableStateOf(false) }
     var profileSheetState by remember { mutableStateOf(false) }
     var settingsSheetState by remember { mutableStateOf(false) }
     val currentUser= viewModel.user.collectAsState().value
-    val currentAcitivity = viewModel.activities.collectAsState().value
+    val currentActivity = viewModel.activities.collectAsState().value
     var selectedActivity by remember { mutableStateOf<Activity?>(null) }
     val routeLine = remember { mutableStateOf<PolylineOptions?>(null) }
     val route2Line = remember { mutableStateOf<PolylineOptions?>(null) }
-val estTime = remember { mutableStateOf<Long>(0L) }
+    val estTime = remember { mutableStateOf<Long>(0L) }
     val estTime2 = remember { mutableStateOf<Long>(0L) }
     var startLocation by remember { mutableStateOf<LatLng?>(null) }
     var endLocation by remember { mutableStateOf<LatLng?>(null) }
     val users = viewModel.users.collectAsState().value
+    var selectedFriend by remember { mutableStateOf<User?>(null) }
+    var profileState by remember { mutableStateOf(false) }
 
     val sheetItems = listOf(
         SheetItem(
@@ -95,6 +96,7 @@ val estTime = remember { mutableStateOf<Long>(0L) }
             "My Profile", R.drawable.account, profileSheetState,
             onShow = {
                 profileSheetState = true
+                selectedFriend = null
                 activitySheetState = false
                 friendSheetState = false
                 settingsSheetState = false
@@ -142,11 +144,29 @@ val estTime = remember { mutableStateOf<Long>(0L) }
             )
         }
         if (friendSheetState) FriendBottomSheet({ friendSheetState = false }, viewModel)
-        if (profileSheetState) ProfileBottomSheet(
-            { profileSheetState = false },
-            viewModel,
-            navController
-        )
+        LaunchedEffect(profileSheetState) {
+            if (profileSheetState) {
+                Log.d("MainScreen", "Launching ProfileBottomSheet for: ${selectedFriend?.UserUsername}")
+            }
+        }
+        if (profileSheetState) {
+            val showUser = selectedFriend ?: currentUser
+            if (showUser != null) {
+                if (selectedFriend != null) {
+                    Log.d("MainScreen", "Profile sheet opened for: ${selectedFriend?.UserUsername}")
+                }
+                ProfileBottomSheet(
+                    onDismiss = { profileSheetState = false },
+                    viewModel = viewModel,
+                    navController = navController,
+                    user = showUser,
+                    isCurrentUser = selectedFriend?.UserID == currentUser?.UserID
+                )
+            } else {
+                Log.e("MainScreen", "Error: showUser is NULL, cannot open ProfileBottomSheet")
+            }
+        }
+
         if (settingsSheetState) SettingsBottomSheet({ settingsSheetState = false })
         Box(
             modifier = Modifier
@@ -160,10 +180,8 @@ val estTime = remember { mutableStateOf<Long>(0L) }
                         locationName = activity.ActivityFromName ?: "Your Location"
                     ) ?: LatLng(user.UserLatitude, user.UserLongitude)
 
-                    Log.d("MainScreen", "Start Point: $startPoint")
 
                     val endPoint = if(activity.ActivityFromName == activity.ActivityToName) {
-                        Log.d("MainScreen", "Start and End Locations are the same so adjusting")
                         LatLng(user.UserLatitude + 0.001, user.UserLongitude + 0.001)
                     } else{
                         getCords(
@@ -180,16 +198,13 @@ val estTime = remember { mutableStateOf<Long>(0L) }
                     LaunchedEffect(key1 = selectedActivity) {
                         val requestUrl =
                             "https://routes.googleapis.com/v2:computeRoutes?origin=${startPoint.latitude},${startPoint.longitude}&destination=${endPoint.latitude},${endPoint.longitude}&key=$apiKey"
-                        Log.d("MainScreen", "Requesting route URL: $requestUrl")
                         try {
                             val route1 = RouteUtils.getRoute(
                                 LatLng(user.UserLatitude, user.UserLongitude),
                                 startPoint,
                                 apiKey
                             )
-                            Log.d("MainScreen", "Route 1 Response: ${route1}")
                             val route2 = RouteUtils.getRoute(startPoint, endPoint, apiKey)
-                            Log.d("MainScreen", "Route 2 Response: ${route2}")
                             val firstRoute1 = route1.routes.firstOrNull()
                             val firstRoute2 = route2.routes.firstOrNull()
 
@@ -215,11 +230,6 @@ val estTime = remember { mutableStateOf<Long>(0L) }
                         }
                     }
                 }
-                Log.d("MapBackground", "Route1 polyline: ${routeLine.value?.points}")
-                Log.d("MapBackground", "Route2 polyline: ${route2Line.value?.points}")
-                Log.d("EstTime", "Estime is: ${formatDuration(estTime.value)}")
-                Log.d("EstTime", "Estime2 is: ${formatDuration(estTime2.value)}")
-                Log.d("MainScreen", "friendsList size: ${users.size}")
 
 
                 MapBackground(
@@ -233,9 +243,17 @@ val estTime = remember { mutableStateOf<Long>(0L) }
                 route2Polyline = route2Line.value,
                 estTime = "${estTime.value / 60}",
                 estTime2 = "${estTime2.value/60}",
-                friendsList = users
+                friendsList = users,
+                    viewModel = viewModel,
+                    selectedFriend = selectedFriend,
+                    profileState = profileState,
+                    onProfileSheetChange = { newState, friend ->
+                        Log.d("MainScreen", "Profile sheet state: $newState, Selected Friend: ${friend.UserUsername}")
+                        profileState = newState
+                        selectedFriend = friend
+                    }
+
             )
-                Log.d("HomeScreen", "Users location$user")
         }
             Column(
                 modifier = Modifier
@@ -247,7 +265,6 @@ val estTime = remember { mutableStateOf<Long>(0L) }
                 Spacer(modifier = Modifier.height(16.dp))
                 PlaceSearchBar { place ->
                     selectedLocation = place
-                    Log.d("HomeScreen", "Selected location: $selectedLocation")
                 }
 
             }

@@ -1,5 +1,6 @@
 package com.example.myapplication.view.navigation
 
+import android.annotation.SuppressLint
 import android.util.Log
 import android.view.View
 import android.widget.FrameLayout
@@ -34,22 +35,38 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
 import coil.compose.rememberImagePainter
 import com.example.myapplication.model.data.User
 import coil.size.Size
 import com.example.myapplication.viewmodel.StaySafeViewModel
+import com.example.themadproject.view.entity.sheet.ProfileBottomSheet
 import com.google.android.gms.maps.model.LatLngBounds
 import com.google.android.gms.maps.model.PolylineOptions
 
 
+@SuppressLint("PotentialBehaviorOverride")
 @Composable
-fun MapBackground(modifier: Modifier = Modifier, user: User, selectedLocation: LatLng?, startPoint: LatLng?, endPoint: LatLng?, route1Polyline: PolylineOptions?, route2Polyline: PolylineOptions?, estTime: String, estTime2: String, friendsList: List<User>) {
+fun MapBackground(
+    modifier: Modifier = Modifier,
+    user: User, selectedLocation: LatLng?,
+    startPoint: LatLng?, endPoint: LatLng?,
+    route1Polyline: PolylineOptions?,
+    route2Polyline: PolylineOptions?,
+    estTime: String,
+    estTime2: String,
+    friendsList: List<User>,
+    viewModel: StaySafeViewModel,
+    selectedFriend: User?,
+    profileState: Boolean,
+    onProfileSheetChange: (Boolean, User) -> Unit) {
     val context = LocalContext.current
     val mapView = remember { mutableStateOf<GoogleMap?>(null) }
     val userLocation = LatLng(user.UserLatitude, user.UserLongitude)
     val currentEstTime by rememberUpdatedState(estTime)
     val currentEstTime2 by rememberUpdatedState(estTime2)
+
     println(friendsList.size)
 
     AndroidView(
@@ -83,13 +100,28 @@ fun MapBackground(modifier: Modifier = Modifier, user: User, selectedLocation: L
                 endPoint?.let {
                     googleMap.addMarker(MarkerOptions().position(it).title("End Point"))
                 }
-                Log.d("MapBackground", "friendsList size: ${friendsList.size}")
                 friendsList.forEach { friend ->
                     val friendsLocation = LatLng(friend.UserLatitude, friend.UserLongitude)
-                    Log.d("MapBackground", "users cords $friendsLocation")
-                    googleMap.addMarker(
+                    val marker = googleMap.addMarker(
                         MarkerOptions().position(friendsLocation).title(friend.UserUsername)
                     )
+                    marker?.tag = friend
+                }
+                googleMap.setOnMarkerClickListener { marker ->
+                    Log.d("MapBackground", "Clicked marker title: ${marker.title}")
+                    val clicked = friendsList.find { it.UserUsername == marker.title }
+                    if (clicked != null) {
+                        if (selectedFriend != clicked || !profileState) {
+                            Log.d("MapBackground", "Opening profile for: ${clicked.UserUsername}")
+                            onProfileSheetChange(true, clicked)
+                            Log.d("MainScreen", "Profile sheet opened for: ${clicked.UserUsername}")
+                        } else {
+                            Log.d("MapBackground", "Ignoring duplicate click for: ${clicked.UserUsername}")
+                        }
+                    } else {
+                        Log.e("MapBackground", "No friend found for marker title: ${marker.title}")
+                    }
+                    true
                 }
                 if (startPoint != null && endPoint != null) {
                     val bounds = LatLngBounds.Builder()
