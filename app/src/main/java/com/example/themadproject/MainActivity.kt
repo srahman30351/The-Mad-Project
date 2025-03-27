@@ -16,6 +16,7 @@ import com.example.themadproject.view.AddActivityScreen
 import com.example.themadproject.view.EditProfileScreen
 import com.example.themadproject.view.HomeScreen
 import com.example.themadproject.view.SignupScreen
+import com.example.themadproject.view.entity.UserListScreen
 import com.google.android.libraries.places.api.Places
 
 class MainActivity : AppCompatActivity() {
@@ -54,6 +55,10 @@ class MainActivity : AppCompatActivity() {
                         composable(Screen.SignupScreen.route)
                         {
                             SignupScreen(navController, viewModel)
+                        }
+                        composable(Screen.UserList.route)
+                        {
+                            UserListScreen(navController, viewModel)
                         }
                     })
             }

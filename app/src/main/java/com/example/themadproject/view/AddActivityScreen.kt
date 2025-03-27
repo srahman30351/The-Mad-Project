@@ -82,6 +82,7 @@ fun AddActivityScreen(navController: NavController, viewModel: StaySafeViewModel
             arriveSearchState = false
         }
 
+
         if (fromSearchState) FormSearchBar(
             onPlaceSelected = handleFrom,
             onDismiss = { fromSearchState = false },
@@ -101,7 +102,7 @@ fun AddActivityScreen(navController: NavController, viewModel: StaySafeViewModel
                 .padding(top = 64.dp)
                 .fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             OutlinedTextField(
                 value = name,
@@ -115,26 +116,16 @@ fun AddActivityScreen(navController: NavController, viewModel: StaySafeViewModel
                 label = { Text("Activity Description") },
                 maxLines = 5
             )
-            Column {
                 SearchTextField(
                     query = fromLocation?.LocationDescription ?: "",
                     label = "Starting Place",
                     onShow = { fromSearchState = true }
                 )
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Checkbox(checked = false, onCheckedChange = {})
-                    Text("Start at existing location")
-                }
                 SearchTextField(
                     query = arriveLocation?.LocationDescription ?: "",
                     label = "Destination",
                     onShow = { arriveSearchState = true }
                 )
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Checkbox(checked = false, onCheckedChange = {})
-                    Text("Have no end destination")
-                }
-            }
             Button(
                 modifier = Modifier.width(200.dp),
                 onClick = {
@@ -177,7 +168,10 @@ private fun verifyActivity(
                             ActivityUserID = user.UserID,
                             ActivityStatusID = 1
                         )
-                    )
+                    ) {
+                        viewModel.showSnackbar("Activity successfully created!", "Success")
+                        navController.navigate(Screen.HomeScreen.route)
+                    }
                 }
             }
 
@@ -205,7 +199,7 @@ fun SearchTextField(
                     contentDescription = "Place"
                 )
             },
-            singleLine = true
+            singleLine = true,
         )
         Box(
             modifier = Modifier

@@ -74,9 +74,7 @@ fun HomeScreen(
     var activitySheetState by remember { mutableStateOf(false) }
     var friendSheetState by remember { mutableStateOf(false) }
     var profileSheetState by remember { mutableStateOf(false) }
-    var settingsSheetState by remember { mutableStateOf(false) }
     val currentUser = viewModel.user.collectAsState().value
-    val currentActivity = viewModel.userActivities.collectAsState().value
     var selectedActivity by remember { mutableStateOf<Activity?>(null) }
     val routeLine = remember { mutableStateOf<PolylineOptions?>(null) }
     val route2Line = remember { mutableStateOf<PolylineOptions?>(null) }
@@ -140,7 +138,6 @@ fun HomeScreen(
                 profileSheetState = true
                 activitySheetState = false
                 friendSheetState = false
-                settingsSheetState = false
             }),
         SheetItem(
             "Activities", R.drawable.travel, activitySheetState,
@@ -148,7 +145,6 @@ fun HomeScreen(
                 activitySheetState = true
                 friendSheetState = false
                 profileSheetState = false
-                settingsSheetState = false
             }),
         SheetItem(
             "My Friends", R.drawable.contacts, friendSheetState,
@@ -156,16 +152,7 @@ fun HomeScreen(
                 friendSheetState = true
                 activitySheetState = false
                 profileSheetState = false
-                settingsSheetState = false
             }),
-        SheetItem(
-            "Settings", R.drawable.settings, settingsSheetState,
-            onShow = {
-                settingsSheetState = true
-                profileSheetState = false
-                activitySheetState = false
-                friendSheetState = false
-            })
     )
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -201,7 +188,7 @@ fun HomeScreen(
                 navController = navController
             )
         }
-        if (friendSheetState) FriendBottomSheet({ friendSheetState = false }, viewModel)
+        if (friendSheetState) FriendBottomSheet({ friendSheetState = false }, navController, viewModel)
         LaunchedEffect(profileSheetState) {
             if (profileSheetState) {
                 Log.d(
@@ -228,7 +215,6 @@ fun HomeScreen(
             }
         }
 
-        if (settingsSheetState) SettingsBottomSheet({ settingsSheetState = false })
         Box(
             modifier = Modifier
                 .fillMaxSize()
